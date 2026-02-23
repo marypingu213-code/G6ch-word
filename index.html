@@ -3,184 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>大字自學系統</title>
+    <title>生字自學列表</title>
     <style>
-        :root {
-            --bg-color: #000000; /* 黑底高對比 */
-            --text-color: #FFFFFF;
-            --highlight: #FFFF00; /* 黃字最清晰 */
-        }
-        body, html {
-            margin: 0; padding: 0; height: 100%;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+        body {
+            background-color: #000000; /* 黑底 */
+            color: #FFFFFF; /* 白字 */
             font-family: "Microsoft JhengHei", sans-serif;
-            overflow: hidden; /* 防止滾動，專注於當前卡片 */
-        }
-
-        /* 大廳樣式：超大按鈕 */
-        #lobby {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            height: 100vh;
-            gap: 10px;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        .unit-btn {
-            background: #222;
-            border: 4px solid var(--text-color);
-            color: var(--highlight);
-            font-size: 3rem; /* 極大字體 */
+            margin: 0;
+            padding: 20px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-
-        /* 學習區域：全螢幕字卡 */
-        #learning-area {
-            display: none;
-            height: 100vh;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            text-align: center;
-            position: relative;
-        }
-        .big-word {
-            font-size: 15vw; /* 隨螢幕寬度縮放的大字 */
-            font-weight: bold;
-            color: var(--highlight);
-            margin: 20px;
-            line-height: 1.2;
-        }
-        .big-emoji {
-            font-size: 10vw;
         }
 
-        /* 控制按鈕：放在底部與頂部，方便觸摸 */
-        .nav-btn {
-            position: absolute;
+        h1 {
+            color: #FFFF00; /* 黃色標題 */
+            font-size: 3rem;
+            margin-bottom: 30px;
+        }
+
+        .vocab-container {
             width: 100%;
-            height: 15vh;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            font-size: 2rem;
+            max-width: 800px;
+        }
+
+        /* 超大字卡區塊 */
+        .vocab-card {
+            background: #222;
+            border: 5px solid #444;
+            border-radius: 25px;
+            margin-bottom: 30px; /* 卡片之間的距離加大，防止誤點 */
+            padding: 40px 20px;
+            text-align: center;
             cursor: pointer;
+            transition: background 0.3s, border-color 0.3s;
         }
-        .btn-top { top: 0; }
-        .btn-bottom { bottom: 0; height: 20vh; background: #c0392b; } /* 回大廳按鈕設為紅色 */
-        
-        .side-nav {
-            position: absolute;
-            width: 20vw;
-            height: 65vh;
-            top: 15vh;
-            background: rgba(255,255,255,0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 5rem;
+
+        .vocab-card:active {
+            background: #444;
+            border-color: #FFFF00;
         }
-        .left { left: 0; }
-        .right { right: 0; }
+
+        .emoji {
+            font-size: 8rem; /* 超大圖片 */
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .word {
+            font-size: 6rem; /* 超大文字 */
+            font-weight: bold;
+            color: #FFFF00; /* 黃字高對比 */
+            letter-spacing: 10px;
+        }
+
+        /* 輔助說明文字 */
+        .hint {
+            color: #888;
+            font-size: 1.5rem;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 
-    <div id="lobby">
-        <div class="unit-btn" onclick="startUnit(1)">1</div>
-        <div class="unit-btn" onclick="startUnit(2)">2</div>
-        <div class="unit-btn" onclick="startUnit(3)">3</div>
-        <div class="unit-btn" onclick="startUnit(4)">4</div>
-        <div class="unit-btn" onclick="startUnit(5)">5</div>
-        <div class="unit-btn" onclick="startUnit(6)">6</div>
-        <div class="unit-btn" onclick="startUnit(7)">7</div>
-        <div class="unit-btn" onclick="startUnit(8)">8</div>
-        <div class="unit-btn" onclick="startUnit(9)">9</div>
-    </div>
+    <h1>📚 自學語詞清單</h1>
+    <p class="hint">直接點擊下方大格子即可聽讀音</p>
 
-    <div id="learning-area">
-        <button class="nav-btn btn-top" onclick="speakCurrent()">🔊 重點一次讀音</button>
-        
-        <div class="side-nav left" onclick="prevWord()">◀</div>
-        
-        <div id="content-box" onclick="speakCurrent()">
-            <div id="display-emoji" class="big-emoji"></div>
-            <div id="display-word" class="big-word">載入中</div>
+    <div class="vocab-container" id="main-list">
         </div>
-        
-        <div class="side-nav right" onclick="nextWord()">▶</div>
-        
-        <button class="nav-btn btn-bottom" onclick="goBack()">🏠 回到大廳</button>
-    </div>
 
     <script>
         const vocabData = [
-            { word: "矛盾", emoji: "🛡️" }, { word: "娛樂", emoji: "🎡" },
-            { word: "帥", emoji: "😎" }, { word: "摔跤", emoji: "💥" },
-            { word: "厚", emoji: "📚" }, { word: "提供", emoji: "🤲" },
-            { word: "諄諄教誨", emoji: "👨‍🏫" }, { word: "竅門", emoji: "🔑" },
-            { word: "呼嘯", emoji: "🌬️" }, { word: "叮嚀", emoji: "🗣️" },
-            { word: "廟", emoji: "⛩️" }, { word: "尿尿", emoji: "🚽" },
-            { word: "煞車", emoji: "🛑" }, { word: "霎時", emoji: "⚡" },
-            { word: "疤", emoji: "🩹" }, { word: "尿臊味", emoji: "👃" }
+            { word: "矛盾", emoji: "🛡️" },
+            { word: "娛樂", emoji: "🎡" },
+            { word: "帥", emoji: "😎" },
+            { word: "摔跤", emoji: "💥" },
+            { word: "厚", emoji: "📚" },
+            { word: "提供", emoji: "🤲" },
+            { word: "諄諄教誨", emoji: "👨‍🏫" },
+            { word: "竅門", emoji: "🔑" },
+            { word: "呼嘯", emoji: "🌬️" },
+            { word: "叮嚀", emoji: "🗣️" },
+            { word: "廟", emoji: "⛩️" },
+            { word: "尿尿", emoji: "🚽" },
+            { word: "煞車", emoji: "🛑" },
+            { word: "霎時", emoji: "⚡" },
+            { word: "疤", emoji: "🩹" },
+            { word: "尿臊味", emoji: "👃" }
         ];
 
-        let currentIndex = 0;
+        const listContainer = document.getElementById('main-list');
 
-        function startUnit(unitId) {
-            // 目前範例：所有字都在第 1 單元
-            if(unitId !== 1) {
-                alert("此單元目前沒有內容，請點擊第 1 單元");
-                return;
-            }
-            document.getElementById('lobby').style.display = 'none';
-            document.getElementById('learning-area').style.display = 'flex';
-            showWord(0);
-        }
+        // 生成所有字卡
+        vocabData.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'vocab-card';
+            card.innerHTML = `
+                <span class="emoji">${item.emoji}</span>
+                <span class="word">${item.word}</span>
+            `;
+            
+            // 點擊事件
+            card.onclick = () => {
+                speak(item.word);
+            };
 
-        function showWord(index) {
-            currentIndex = index;
-            const item = vocabData[currentIndex];
-            document.getElementById('display-word').innerText = item.word;
-            document.getElementById('display-emoji').innerText = item.emoji;
-            speakCurrent();
-        }
+            listContainer.appendChild(card);
+        });
 
-        function nextWord() {
-            if (currentIndex < vocabData.length - 1) {
-                showWord(currentIndex + 1);
-            } else {
-                speak("已經是最後一個字了");
-            }
-        }
-
-        function prevWord() {
-            if (currentIndex > 0) {
-                showWord(currentIndex - 1);
-            }
-        }
-
-        function speakCurrent() {
-            const item = vocabData[currentIndex];
-            speak(item.word);
-        }
-
+        // 語音功能
         function speak(text) {
-            window.speechSynthesis.cancel(); // 先停止之前的聲音
+            // 先停止正在播放的聲音
+            window.speechSynthesis.cancel();
+            
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-TW';
-            utterance.rate = 0.7; // 慢速語音方便辨識
+            utterance.rate = 0.7; // 語速稍慢
+            utterance.pitch = 1.0;
             window.speechSynthesis.speak(utterance);
-        }
-
-        function goBack() {
-            document.getElementById('lobby').style.display = 'grid';
-            document.getElementById('learning-area').style.display = 'none';
         }
     </script>
 </body>
