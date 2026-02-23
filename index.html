@@ -3,70 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生字自學系統 - 兩兩一組版</title>
+    <title>生字自學系統 - 兩兩並排版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body {
             background-color: #000000;
             color: #FFFFFF;
             font-family: "Microsoft JhengHei", sans-serif;
-            margin: 0; padding: 20px;
+            margin: 0; padding: 10px;
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* QR Code 顯示區塊 */
+        /* QR Code 顯示區塊 (縮小一點，把空間讓給字卡) */
         #qrcode-container {
             background: white;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 40px;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
             text-align: center;
         }
-        #qrcode-container p { color: black; font-weight: bold; margin-bottom: 10px; font-size: 1.2rem; }
+        #qrcode-container p { color: black; font-weight: bold; margin: 5px; font-size: 1rem; }
 
-        h1 { color: #FFFF00; font-size: 3.5rem; margin-top: 0; }
-        .unit-title {
-            color: #00FF00; /* 綠色區分單元 */
-            font-size: 2.5rem;
-            margin-top: 50px;
-            border-bottom: 2px solid #00FF00;
+        h1 { color: #FFFF00; font-size: 2.5rem; margin: 10px 0; }
+
+        /* 核心佈局：兩兩一排 */
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 關鍵：平分成兩列 */
+            gap: 15px; /* 格子間距 */
             width: 100%;
-            text-align: center;
-            padding-bottom: 10px;
+            max-width: 1200px; /* 適合筆電寬螢幕 */
         }
-
-        .vocab-container { width: 100%; max-width: 900px; }
 
         /* 大字卡樣式 */
         .vocab-card {
             background: #1a1a1a;
-            border: 8px solid #FFFF00; /* 更粗的黃框 */
-            border-radius: 30px;
-            margin: 30px 0;
-            padding: 50px 20px;
+            border: 6px solid #FFFF00; /* 高對比黃框 */
+            border-radius: 20px;
+            padding: 30px 10px;
             text-align: center;
             cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 250px; /* 確保格子夠大好點擊 */
         }
-        .vocab-card:active { background: #333; }
 
-        .emoji { font-size: 10rem; display: block; }
-        .word { font-size: 8rem; font-weight: bold; color: #FFFF00; letter-spacing: 15px; }
+        .vocab-card:active { background: #444; border-color: #00FF00; }
+
+        .emoji { font-size: 6rem; margin-bottom: 10px; }
+        .word { 
+            font-size: 4.5rem; /* 字體稍微縮小一點點以適應並排，但依然非常大 */
+            font-weight: bold; 
+            color: #FFFF00; 
+            line-height: 1.1;
+        }
         
-        /* 輔助文字 */
-        .hint { color: #888; font-size: 1.5rem; margin-bottom: 20px; }
+        /* 針對窄螢幕(如手機)自動切換回一排一個，確保字不被擠壓 */
+        @media (max-width: 600px) {
+            .vocab-grid { grid-template-columns: 1fr; }
+            .word { font-size: 5.5rem; }
+        }
     </style>
 </head>
 <body>
 
     <div id="qrcode-container">
-        <p>📱 學生掃描此處開始學習</p>
+        <p>📱 掃描學習</p>
         <div id="qrcode"></div>
     </div>
 
-    <h1>📚 生字自學清單</h1>
-    <p class="hint">點擊下方大格子即可聽讀音</p>
+    <h1>📚 語詞學習 (並排版)</h1>
 
-    <div class="vocab-container" id="main-list">
+    <div class="vocab-grid" id="main-grid">
         </div>
 
     <script>
@@ -81,46 +91,32 @@
             { word: "疤", emoji: "🩹" }, { word: "尿臊味", emoji: "👃" }
         ];
 
-        const listContainer = document.getElementById('main-list');
+        const gridContainer = document.getElementById('main-grid');
 
-        // 每兩個字一組，並標上單元
-        for (let i = 0; i < vocabData.length; i += 2) {
-            // 建立單元標題
-            const unitTitle = document.createElement('div');
-            unitTitle.className = 'unit-title';
-            unitTitle.innerText = `第 ${Math.floor(i/2) + 1} 組`;
-            listContainer.appendChild(unitTitle);
+        vocabData.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'vocab-card';
+            card.innerHTML = `
+                <div class="emoji">${item.emoji}</div>
+                <div class="word">${item.word}</div>
+            `;
+            card.onclick = () => speak(item.word);
+            gridContainer.appendChild(card);
+        });
 
-            // 建立該組的兩個字卡
-            for (let j = 0; j < 2; j++) {
-                if (vocabData[i + j]) {
-                    const item = vocabData[i + j];
-                    const card = document.createElement('div');
-                    card.className = 'vocab-card';
-                    card.innerHTML = `
-                        <span class="emoji">${item.emoji}</span>
-                        <span class="word">${item.word}</span>
-                    `;
-                    card.onclick = () => speak(item.word);
-                    listContainer.appendChild(card);
-                }
-            }
-        }
-
-        // 語音功能
         function speak(text) {
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-TW';
-            utterance.rate = 0.6; // 針對視障學生再次放慢語速
+            utterance.rate = 0.7; 
             window.speechSynthesis.speak(utterance);
         }
 
-        // 自動生成當前網頁的 QR Code
+        // QR Code 生成
         new QRCode(document.getElementById("qrcode"), {
-            text: window.location.href, // 自動抓取目前的網址
-            width: 200,
-            height: 200
+            text: window.location.href,
+            width: 120,
+            height: 120
         });
     </script>
 </body>
