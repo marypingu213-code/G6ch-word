@@ -3,126 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生字自學列表</title>
+    <title>生字自學系統 - 兩兩一組版</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body {
-            background-color: #000000; /* 黑底 */
-            color: #FFFFFF; /* 白字 */
+            background-color: #000000;
+            color: #FFFFFF;
             font-family: "Microsoft JhengHei", sans-serif;
-            margin: 0;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* QR Code 顯示區塊 */
+        #qrcode-container {
+            background: white;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            text-align: center;
         }
+        #qrcode-container p { color: black; font-weight: bold; margin-bottom: 10px; font-size: 1.2rem; }
 
-        h1 {
-            color: #FFFF00; /* 黃色標題 */
-            font-size: 3rem;
-            margin-bottom: 30px;
-        }
-
-        .vocab-container {
+        h1 { color: #FFFF00; font-size: 3.5rem; margin-top: 0; }
+        .unit-title {
+            color: #00FF00; /* 綠色區分單元 */
+            font-size: 2.5rem;
+            margin-top: 50px;
+            border-bottom: 2px solid #00FF00;
             width: 100%;
-            max-width: 800px;
+            text-align: center;
+            padding-bottom: 10px;
         }
 
-        /* 超大字卡區塊 */
+        .vocab-container { width: 100%; max-width: 900px; }
+
+        /* 大字卡樣式 */
         .vocab-card {
-            background: #222;
-            border: 5px solid #444;
-            border-radius: 25px;
-            margin-bottom: 30px; /* 卡片之間的距離加大，防止誤點 */
-            padding: 40px 20px;
+            background: #1a1a1a;
+            border: 8px solid #FFFF00; /* 更粗的黃框 */
+            border-radius: 30px;
+            margin: 30px 0;
+            padding: 50px 20px;
             text-align: center;
             cursor: pointer;
-            transition: background 0.3s, border-color 0.3s;
         }
+        .vocab-card:active { background: #333; }
 
-        .vocab-card:active {
-            background: #444;
-            border-color: #FFFF00;
-        }
-
-        .emoji {
-            font-size: 8rem; /* 超大圖片 */
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        .word {
-            font-size: 6rem; /* 超大文字 */
-            font-weight: bold;
-            color: #FFFF00; /* 黃字高對比 */
-            letter-spacing: 10px;
-        }
-
-        /* 輔助說明文字 */
-        .hint {
-            color: #888;
-            font-size: 1.5rem;
-            margin-top: 10px;
-        }
+        .emoji { font-size: 10rem; display: block; }
+        .word { font-size: 8rem; font-weight: bold; color: #FFFF00; letter-spacing: 15px; }
+        
+        /* 輔助文字 */
+        .hint { color: #888; font-size: 1.5rem; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <h1>📚 自學語詞清單</h1>
-    <p class="hint">直接點擊下方大格子即可聽讀音</p>
+    <div id="qrcode-container">
+        <p>📱 學生掃描此處開始學習</p>
+        <div id="qrcode"></div>
+    </div>
+
+    <h1>📚 生字自學清單</h1>
+    <p class="hint">點擊下方大格子即可聽讀音</p>
 
     <div class="vocab-container" id="main-list">
         </div>
 
     <script>
         const vocabData = [
-            { word: "矛盾", emoji: "🛡️" },
-            { word: "娛樂", emoji: "🎡" },
-            { word: "帥", emoji: "😎" },
-            { word: "摔跤", emoji: "💥" },
-            { word: "厚", emoji: "📚" },
-            { word: "提供", emoji: "🤲" },
-            { word: "諄諄教誨", emoji: "👨‍🏫" },
-            { word: "竅門", emoji: "🔑" },
-            { word: "呼嘯", emoji: "🌬️" },
-            { word: "叮嚀", emoji: "🗣️" },
-            { word: "廟", emoji: "⛩️" },
-            { word: "尿尿", emoji: "🚽" },
-            { word: "煞車", emoji: "🛑" },
-            { word: "霎時", emoji: "⚡" },
-            { word: "疤", emoji: "🩹" },
-            { word: "尿臊味", emoji: "👃" }
+            { word: "矛盾", emoji: "🛡️" }, { word: "娛樂", emoji: "🎡" },
+            { word: "帥", emoji: "😎" }, { word: "摔跤", emoji: "💥" },
+            { word: "厚", emoji: "📚" }, { word: "提供", emoji: "🤲" },
+            { word: "諄諄教誨", emoji: "👨‍🏫" }, { word: "竅門", emoji: "🔑" },
+            { word: "呼嘯", emoji: "🌬️" }, { word: "叮嚀", emoji: "🗣️" },
+            { word: "廟", emoji: "⛩️" }, { word: "尿尿", emoji: "🚽" },
+            { word: "煞車", emoji: "🛑" }, { word: "霎時", emoji: "⚡" },
+            { word: "疤", emoji: "🩹" }, { word: "尿臊味", emoji: "👃" }
         ];
 
         const listContainer = document.getElementById('main-list');
 
-        // 生成所有字卡
-        vocabData.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'vocab-card';
-            card.innerHTML = `
-                <span class="emoji">${item.emoji}</span>
-                <span class="word">${item.word}</span>
-            `;
-            
-            // 點擊事件
-            card.onclick = () => {
-                speak(item.word);
-            };
+        // 每兩個字一組，並標上單元
+        for (let i = 0; i < vocabData.length; i += 2) {
+            // 建立單元標題
+            const unitTitle = document.createElement('div');
+            unitTitle.className = 'unit-title';
+            unitTitle.innerText = `第 ${Math.floor(i/2) + 1} 組`;
+            listContainer.appendChild(unitTitle);
 
-            listContainer.appendChild(card);
-        });
+            // 建立該組的兩個字卡
+            for (let j = 0; j < 2; j++) {
+                if (vocabData[i + j]) {
+                    const item = vocabData[i + j];
+                    const card = document.createElement('div');
+                    card.className = 'vocab-card';
+                    card.innerHTML = `
+                        <span class="emoji">${item.emoji}</span>
+                        <span class="word">${item.word}</span>
+                    `;
+                    card.onclick = () => speak(item.word);
+                    listContainer.appendChild(card);
+                }
+            }
+        }
 
         // 語音功能
         function speak(text) {
-            // 先停止正在播放的聲音
             window.speechSynthesis.cancel();
-            
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-TW';
-            utterance.rate = 0.7; // 語速稍慢
-            utterance.pitch = 1.0;
+            utterance.rate = 0.6; // 針對視障學生再次放慢語速
             window.speechSynthesis.speak(utterance);
         }
+
+        // 自動生成當前網頁的 QR Code
+        new QRCode(document.getElementById("qrcode"), {
+            text: window.location.href, // 自動抓取目前的網址
+            width: 200,
+            height: 200
+        });
     </script>
 </body>
 </html>
