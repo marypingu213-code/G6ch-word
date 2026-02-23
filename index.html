@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生字自學系統 - 語音校正版</title>
+    <title>生字自學系統 - 最終校正版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body {
@@ -25,57 +25,58 @@
 
         h1 { color: #FFFF00; font-size: 2rem; margin: 10px 0; }
 
+        /* 兩兩一排的網格佈局 */
         .vocab-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 15px;
             width: 100%;
             max-width: 1000px;
         }
 
         .vocab-card {
             background: #1a1a1a;
-            border: 6px solid #FFFF00;
+            border: 8px solid #FFFF00; /* 加粗邊框方便視障生定位 */
             border-radius: 20px;
-            padding: 25px 5px;
+            padding: 30px 5px;
             text-align: center;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            min-height: 200px;
+            min-height: 220px;
         }
 
         .vocab-card:active { background: #333; border-color: #00FF00; }
 
-        .emoji { font-size: 5rem; margin-bottom: 5px; }
+        .emoji { font-size: 5.5rem; margin-bottom: 10px; }
         .word { 
-            font-size: 3.5rem; 
+            font-size: 4rem; 
             font-weight: bold; 
             color: #FFFF00; 
             line-height: 1.1;
-            letter-spacing: 2px;
         }
         
+        /* 手機直向顯示時自動切換為一排一個，維持大字體 */
         @media (max-width: 600px) {
-            .word { font-size: 3rem; }
-            .emoji { font-size: 4rem; }
+            .vocab-grid { grid-template-columns: 1fr; }
+            .word { font-size: 4.5rem; }
         }
     </style>
 </head>
 <body>
 
     <div id="qrcode-container">
-        <p>📱 掃描學習</p>
+        <p>📱 學生掃描開始學習</p>
         <div id="qrcode"></div>
     </div>
 
-    <h1>📚 語詞自學 (語音修正版)</h1>
+    <h1>📚 語詞學習 (精確發音版)</h1>
 
     <div class="vocab-grid" id="main-grid"></div>
 
     <script>
-        // 在資料中加入音標校正欄位 (tts_fix)
+        // 資料設定：tts_fix 用於修正電腦發音
         const vocabData = [
             { word: "矛盾", emoji: "🛡️" }, { word: "娛樂", emoji: "🎡" },
             { word: "帥", emoji: "😎" }, { word: "摔跤", emoji: "💥" },
@@ -83,10 +84,10 @@
             { word: "諄諄教誨", emoji: "👨‍🏫" }, { word: "竅門", emoji: "🔑" },
             { word: "呼嘯", emoji: "🌬️" }, { word: "叮嚀", emoji: "🗣️" },
             { word: "廟", emoji: "⛩️" }, { word: "尿尿", emoji: "🚽" },
-            { word: "煞車", emoji: "🛑", tts_fix: "ㄕㄚ車" }, // 校正為一聲
+            { word: "煞車", emoji: "🛑", tts_fix: "沙車" }, // 使用同音字「沙」
             { word: "霎時", emoji: "⚡" },
             { word: "疤", emoji: "🩹" },
-            { word: "尿臊味", emoji: "👃", tts_fix: "尿ㄙㄠ味" } // 校正為一聲
+            { word: "尿臊味", emoji: "👃", tts_fix: "尿騷味" } // 使用同音字「騷」
         ];
 
         const gridContainer = document.getElementById('main-grid');
@@ -96,7 +97,7 @@
             card.className = 'vocab-card';
             card.innerHTML = `<div class="emoji">${item.emoji}</div><div class="word">${item.word}</div>`;
             
-            // 點擊時，如果有校正音就讀校正音，否則讀原詞
+            // 語音觸發
             card.onclick = () => speak(item.tts_fix || item.word);
             gridContainer.appendChild(card);
         });
@@ -105,14 +106,15 @@
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-TW';
-            utterance.rate = 0.6; // 放慢一點讓學生聽清楚聲調
+            utterance.rate = 0.65; // 放慢語速
             window.speechSynthesis.speak(utterance);
         }
 
+        // 產生 QR Code
         new QRCode(document.getElementById("qrcode"), {
             text: window.location.href,
-            width: 100,
-            height: 100
+            width: 120,
+            height: 120
         });
     </script>
 </body>
