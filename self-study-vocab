@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生字自學大本營 📚</title>
+    <style>
+        :root {
+            --primary-blue: #3498db;
+            --bg-color: #f4f7f6;
+        }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg-color); margin: 0; padding: 20px; text-align: center; }
+        h1 { color: #2c3e50; margin-bottom: 10px; }
+        .subtitle { color: #7f8c8d; margin-bottom: 30px; }
+        
+        /* 九宮格大廳佈局 */
+        .lobby-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .unit-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            border-bottom: 5px solid var(--primary-blue);
+        }
+        
+        .unit-card:hover { transform: translateY(-5px); background: #ebf5fb; }
+        .unit-card h2 { margin: 0; color: var(--primary-blue); }
+        .unit-card p { color: #666; font-size: 0.9em; }
+
+        /* 生字顯示區域 (點擊單元後顯示) */
+        #learning-area { display: none; margin-top: 30px; padding: 20px; background: white; border-radius: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .vocab-item { display: inline-block; margin: 15px; padding: 15px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; font-size: 1.5em; }
+        .vocab-item:hover { background: #fff9c4; border-color: #f1c40f; }
+        .btn-back { margin-bottom: 20px; padding: 10px 20px; cursor: pointer; background: #95a5a6; color: white; border: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="lobby">
+        <h1>🌟 生字自學大廳</h1>
+        <p class="subtitle">選擇一個單元開始探索文字的奧秘吧！</p>
+        <div class="lobby-grid" id="grid">
+            </div>
+    </div>
+
+    <div id="learning-area">
+        <button class="btn-back" onclick="goBack()">⬅️ 回到大廳</button>
+        <h2 id="current-unit-title">單元名稱</h2>
+        <div id="vocab-list"></div>
+        <p style="color: #999;">💡 點擊字卡可以聽正確讀音喔！</p>
+    </div>
+
+    <script>
+        // 你的生字資料庫
+        const vocabData = [
+            { word: "矛盾", emoji: "🛡️⚔️", pinyin: "ㄇㄠˊ ㄉㄨㄣˋ" },
+            { word: "娛樂", emoji: "🎡🎮", pinyin: "ㄩˊ ㄌㄜˋ" },
+            { word: "帥", emoji: "😎✨", pinyin: "ㄕㄨㄞˋ" },
+            { word: "摔跤", emoji: "🤸‍♂️💥", pinyin: "ㄕㄨㄞ ㄐㄧㄠ" },
+            { word: "厚", emoji: "📚", pinyin: "ㄏㄡˋ" },
+            { word: "提供", emoji: "🤲", pinyin: "ㄊㄧˊ ㄍㄨㄥ" },
+            { word: "諄諄教誨", emoji: "👨‍🏫📖", pinyin: "ㄓㄨㄣ ㄓㄨㄣ ㄐㄧㄠˋ ㄏㄨㄟˋ" },
+            { word: "竅門", emoji: "🔑💡", pinyin: "ㄑㄧㄠˋ ㄇㄣˊ" },
+            { word: "呼嘯", emoji: "🌬️🏎️", pinyin: "ㄏㄨ ㄒㄧㄠˋ" },
+            { word: "叮嚀", emoji: "🗣️👂", pinyin: "ㄉㄧㄥ ㄋㄧㄥˊ" },
+            { word: "廟", emoji: "⛩️", pinyin: "ㄇㄧㄠˋ" },
+            { word: "尿尿", emoji: "🚽", pinyin: "ㄋㄧㄠˋ ㄋㄧㄠˋ" },
+            { word: "煞車", emoji: "🛑", pinyin: "ㄕㄚ ㄔㄜ" },
+            { word: "霎時", emoji: "⚡", pinyin: "ㄕㄚˋ ㄕˊ" },
+            { word: "疤", emoji: "🩹", pinyin: "ㄅㄚ" },
+            { word: "尿臊味", emoji: "👃🤢", pinyin: "ㄋㄧㄠˋ ㄙㄠ ㄨㄟˋ" }
+        ];
+
+        // 初始化 9 個單元大廳
+        const grid = document.getElementById('grid');
+        for (let i = 1; i <= 9; i++) {
+            const card = document.createElement('div');
+            card.className = 'unit-card';
+            card.innerHTML = `<h2>第 ${i} 單元</h2><p>點擊進入學習</p>`;
+            card.onclick = () => startUnit(i);
+            grid.appendChild(card);
+        }
+
+        function startUnit(unitId) {
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('learning-area').style.display = 'block';
+            document.getElementById('current-unit-title').innerText = `第 ${unitId} 單元 學習中`;
+            
+            const list = document.getElementById('vocab-list');
+            list.innerHTML = ''; // 清空舊內容
+
+            // 這裡示範將所有字放入第一單元，其他單元暫時空白
+            if(unitId === 1) {
+                vocabData.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'vocab-item';
+                    div.innerHTML = `${item.emoji}<br>${item.word}`;
+                    div.onclick = () => speak(item.word);
+                    list.appendChild(div);
+                });
+            } else {
+                list.innerHTML = '<p>這個單元的內容正在準備中...</p>';
+            }
+        }
+
+        function goBack() {
+            document.getElementById('lobby').style.display = 'block';
+            document.getElementById('learning-area').style.display = 'none';
+        }
+
+        function speak(text) {
+            // 使用瀏覽器內建的 Web Speech API
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-TW';
+            utterance.rate = 0.8; // 稍微慢一點，聽得比較清楚
+            window.speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+</html>
