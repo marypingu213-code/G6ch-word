@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生字自學系統 - 最終校正版</title>
+    <title>生字自學系統 - 學習進度版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body {
@@ -15,17 +15,15 @@
         }
 
         #qrcode-container {
-            background: white;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            text-align: center;
+            background: white; padding: 10px; border-radius: 10px;
+            margin-bottom: 15px; text-align: center;
         }
         #qrcode-container p { color: black; font-weight: bold; margin: 5px; font-size: 0.9rem; }
 
         h1 { color: #FFFF00; font-size: 2rem; margin: 10px 0; }
+        .hint { color: #888; margin-bottom: 10px; }
 
-        /* 兩兩一排的網格佈局 */
+        /* 兩兩一排 */
         .vocab-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -36,85 +34,122 @@
 
         .vocab-card {
             background: #1a1a1a;
-            border: 8px solid #FFFF00; /* 加粗邊框方便視障生定位 */
-            border-radius: 20px;
+            border: 8px solid #FFFF00;
+            border-radius: 25px;
             padding: 30px 5px;
             text-align: center;
             cursor: pointer;
+            position: relative; /* 為了定位勾勾按鈕 */
             display: flex;
             flex-direction: column;
             justify-content: center;
-            min-height: 220px;
+            min-height: 250px;
+            transition: opacity 0.4s;
         }
 
-        .vocab-card:active { background: #333; border-color: #00FF00; }
-
-        .emoji { font-size: 5.5rem; margin-bottom: 10px; }
-        .word { 
-            font-size: 4rem; 
-            font-weight: bold; 
-            color: #FFFF00; 
-            line-height: 1.1;
+        /* 移除按鈕 (我學會了) */
+        .done-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #c0392b;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(255,255,255,0.3);
         }
+
+        .emoji { font-size: 5rem; margin-bottom: 10px; pointer-events: none; }
+        .word { font-size: 3.8rem; font-weight: bold; color: #FFFF00; pointer-events: none; }
         
-        /* 手機直向顯示時自動切換為一排一個，維持大字體 */
         @media (max-width: 600px) {
             .vocab-grid { grid-template-columns: 1fr; }
-            .word { font-size: 4.5rem; }
+            .done-btn { width: 80px; height: 80px; font-size: 2.5rem; } /* 手機上更好按 */
         }
     </style>
 </head>
 <body>
 
     <div id="qrcode-container">
-        <p>📱 學生掃描開始學習</p>
+        <p>📱 掃描學習</p>
         <div id="qrcode"></div>
     </div>
 
-    <h1>📚 語詞學習 (精確發音版)</h1>
+    <h1>📚 自學清單</h1>
+    <p class="hint">點擊格子聽讀音，點擊紅色 ✖ 學會並移除</p>
 
     <div class="vocab-grid" id="main-grid"></div>
 
     <script>
-        // 資料設定：tts_fix 用於修正電腦發音
         const vocabData = [
             { word: "矛盾", emoji: "🛡️" }, { word: "娛樂", emoji: "🎡" },
             { word: "帥", emoji: "😎" }, { word: "摔跤", emoji: "💥" },
             { word: "厚", emoji: "📚" }, { word: "提供", emoji: "🤲" },
-            { word: "諄諄教誨", emoji: "👨‍🏫" }, { word: "竅門", emoji: "🔑" },
+            { word: "諄諄教誨", emoji: "👨‍🏫", tts_fix: "諄諄教繪" }, // 修正為「會」的音
+            { word: "竅門", emoji: "🔑" },
             { word: "呼嘯", emoji: "🌬️" }, { word: "叮嚀", emoji: "🗣️" },
             { word: "廟", emoji: "⛩️" }, { word: "尿尿", emoji: "🚽" },
-            { word: "煞車", emoji: "🛑", tts_fix: "沙車" }, // 使用同音字「沙」
+            { word: "煞車", emoji: "🛑", tts_fix: "沙車" },
             { word: "霎時", emoji: "⚡" },
             { word: "疤", emoji: "🩹" },
-            { word: "尿臊味", emoji: "👃", tts_fix: "尿騷味" } // 使用同音字「騷」
+            { word: "尿臊味", emoji: "👃", tts_fix: "尿騷味" }
         ];
 
         const gridContainer = document.getElementById('main-grid');
 
-        vocabData.forEach(item => {
+        vocabData.forEach((item, index) => {
             const card = document.createElement('div');
             card.className = 'vocab-card';
-            card.innerHTML = `<div class="emoji">${item.emoji}</div><div class="word">${item.word}</div>`;
+            card.id = `card-${index}`;
             
-            // 語音觸發
-            card.onclick = () => speak(item.tts_fix || item.word);
+            // 點擊卡片本體發音
+            card.onclick = (e) => {
+                // 如果點到的是紅色按鈕，則不執行發音
+                if(e.target.className !== 'done-btn') {
+                    speak(item.tts_fix || item.word);
+                }
+            };
+
+            card.innerHTML = `
+                <button class="done-btn" onclick="removeCard('${card.id}')">✖</button>
+                <div class="emoji">${item.emoji}</div>
+                <div class="word">${item.word}</div>
+            `;
+            
             gridContainer.appendChild(card);
         });
+
+        // 移除卡片功能
+        function removeCard(id) {
+            const card = document.getElementById(id);
+            card.style.opacity = '0'; // 漸變消失效果
+            setTimeout(() => {
+                card.remove();
+            }, 400);
+            
+            // 播放一聲簡短的提示音或唸「學會了」
+            speak("學會了");
+        }
 
         function speak(text) {
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-TW';
-            utterance.rate = 0.65; // 放慢語速
+            utterance.rate = 0.65;
             window.speechSynthesis.speak(utterance);
         }
 
-        // 產生 QR Code
         new QRCode(document.getElementById("qrcode"), {
             text: window.location.href,
-            width: 120,
-            height: 120
+            width: 100, height: 100
         });
     </script>
 </body>
