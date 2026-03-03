@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生字自學系統 - 學習進度版</title>
+    <title>生字自學系統 - 全課程版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body {
@@ -14,22 +14,41 @@
             display: flex; flex-direction: column; align-items: center;
         }
 
+        /* QR Code 區域 */
         #qrcode-container {
             background: white; padding: 10px; border-radius: 10px;
             margin-bottom: 15px; text-align: center;
         }
         #qrcode-container p { color: black; font-weight: bold; margin: 5px; font-size: 0.9rem; }
 
-        h1 { color: #FFFF00; font-size: 2rem; margin: 10px 0; }
-        .hint { color: #888; margin-bottom: 10px; }
+        h1 { color: #FFFF00; font-size: 2.5rem; margin: 10px 0; text-align: center; }
 
-        /* 兩兩一排 */
+        /* 大廳佈局：超大按鈕 */
+        .lobby-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        .unit-btn {
+            background: #222;
+            border: 6px solid #00FF00; /* 綠框區分大廳按鈕 */
+            color: #FFFFFF;
+            font-size: 2.5rem;
+            padding: 40px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        /* 課文內容佈局 */
+        #lesson-area { display: none; width: 100%; max-width: 1000px; }
+        
         .vocab-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            width: 100%;
-            max-width: 1000px;
         }
 
         .vocab-card {
@@ -39,104 +58,131 @@
             padding: 30px 5px;
             text-align: center;
             cursor: pointer;
-            position: relative; /* 為了定位勾勾按鈕 */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            min-height: 250px;
-            transition: opacity 0.4s;
+            position: relative;
+            min-height: 220px;
         }
 
-        /* 移除按鈕 (我學會了) */
         .done-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: #c0392b;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 2rem;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 10px rgba(255,255,255,0.3);
+            position: absolute; top: 5px; right: 5px;
+            background: #c0392b; color: white; border: none;
+            border-radius: 50%; width: 65px; height: 65px;
+            font-size: 2rem; font-weight: bold; cursor: pointer;
+        }
+
+        .back-btn {
+            background: #555; color: white; border: none;
+            padding: 15px 30px; font-size: 1.5rem; border-radius: 10px;
+            margin-bottom: 20px; cursor: pointer; align-self: flex-start;
         }
 
         .emoji { font-size: 5rem; margin-bottom: 10px; pointer-events: none; }
-        .word { font-size: 3.8rem; font-weight: bold; color: #FFFF00; pointer-events: none; }
-        
+        .word { font-size: 3.5rem; font-weight: bold; color: #FFFF00; pointer-events: none; }
+
         @media (max-width: 600px) {
-            .vocab-grid { grid-template-columns: 1fr; }
-            .done-btn { width: 80px; height: 80px; font-size: 2.5rem; } /* 手機上更好按 */
+            .lobby-grid, .vocab-grid { grid-template-columns: 1fr; }
+            .unit-btn { padding: 30px 10px; }
         }
     </style>
 </head>
 <body>
 
     <div id="qrcode-container">
-        <p>📱 掃描學習</p>
+        <p>📱 掃描開始學習</p>
         <div id="qrcode"></div>
     </div>
 
-    <h1>📚 自學清單</h1>
-    <p class="hint">點擊格子聽讀音，點擊紅色 ✖ 學會並移除</p>
+    <div id="lobby">
+        <h1>📚 課文自學大廳</h1>
+        <div class="lobby-grid">
+            <div class="unit-btn" onclick="loadLesson(1)">第一課</div>
+            <div class="unit-btn" onclick="loadLesson(2)">第二課<br><small style="font-size: 1rem;">達駭黑熊</small></div>
+            <div class="unit-btn" onclick="alert('內容開發中')">第三課</div>
+            <div class="unit-btn" onclick="alert('內容開發中')">第四課</div>
+            <div class="unit-btn" onclick="alert('內容開發中')">第五課</div>
+            <div class="unit-btn" onclick="alert('內容開發中')">第六課</div>
+            <div class="unit-btn" onclick="alert('內容開發中')">第七課</div>
+            <div class="unit-btn" onclick="alert('內容開發中')">第八課</div>
+            <div class="unit-btn" onclick="alert('內容開發中')">第九課</div>
+        </div>
+    </div>
 
-    <div class="vocab-grid" id="main-grid"></div>
+    <div id="lesson-area">
+        <button class="back-btn" onclick="goBack()">🏠 回大廳</button>
+        <h1 id="lesson-title">課文標題</h1>
+        <div class="vocab-grid" id="vocab-grid"></div>
+    </div>
 
     <script>
-        const vocabData = [
-            { word: "矛盾", emoji: "🛡️" }, { word: "娛樂", emoji: "🎡" },
-            { word: "帥", emoji: "😎" }, { word: "摔跤", emoji: "💥" },
-            { word: "厚", emoji: "📚" }, { word: "提供", emoji: "🤲" },
-            { word: "諄諄教誨", emoji: "👨‍🏫", tts_fix: "諄諄教繪" }, // 修正為「會」的音
-            { word: "竅門", emoji: "🔑" },
-            { word: "呼嘯", emoji: "🌬️" }, { word: "叮嚀", emoji: "🗣️" },
-            { word: "廟", emoji: "⛩️" }, { word: "尿尿", emoji: "🚽" },
-            { word: "煞車", emoji: "🛑", tts_fix: "沙車" },
-            { word: "霎時", emoji: "⚡" },
-            { word: "疤", emoji: "🩹" },
-            { word: "尿臊味", emoji: "👃", tts_fix: "尿騷味" }
-        ];
+        const lessons = {
+            1: {
+                title: "第一課重點語詞",
+                data: [
+                    { word: "矛盾", emoji: "🛡️" }, { word: "娛樂", emoji: "🎡" },
+                    { word: "帥", emoji: "😎" }, { word: "摔跤", emoji: "💥" },
+                    { word: "厚", emoji: "📚" }, { word: "提供", emoji: "🤲" },
+                    { word: "諄諄教誨", emoji: "👨‍🏫", tts: "諄諄教繪" },
+                    { word: "竅門", emoji: "🔑" }, { word: "呼嘯", emoji: "🌬️" },
+                    { word: "叮嚀", emoji: "🗣️" }, { word: "廟", emoji: "⛩️" },
+                    { word: "尿尿", emoji: "🚽" }, { word: "煞車", emoji: "🛑", tts: "沙車" },
+                    { word: "霎時", emoji: "⚡" }, { word: "疤", emoji: "🩹" },
+                    { word: "尿臊味", emoji: "👃", tts: "尿騷味" }
+                ]
+            },
+            2: {
+                title: "第二課：達駭黑熊",
+                data: [
+                    { word: "獵人", emoji: "🏹" }, { word: "尚未", emoji: "⏳" },
+                    { word: "包括", emoji: "📦" }, { word: "糞便", emoji: "💩" },
+                    { word: "獵寮", emoji: "⛺", tts: "獵聊" }, // 校正「寮」的讀音
+                    { word: "狩獵", emoji: "🐺" }, { word: "逼迫", emoji: "😖" },
+                    { word: "威脅", emoji: "😨" }, { word: "殺害", emoji: "❌" },
+                    { word: "遵照", emoji: "🫡" }, 
+                    { word: "骸骨", emoji: "💀", tts: "孩骨" }, // 校正「骸」讀「孩」
+                    { word: "窩在", emoji: "🧶" }, { word: "杉木", emoji: "🌲" },
+                    { word: "小心翼翼", emoji: "🤫" }, { word: "奄奄一息", emoji: "🥀" }
+                ]
+            }
+        };
 
-        const gridContainer = document.getElementById('main-grid');
+        function loadLesson(id) {
+            const lesson = lessons[id];
+            if(!lesson) return;
 
-        vocabData.forEach((item, index) => {
-            const card = document.createElement('div');
-            card.className = 'vocab-card';
-            card.id = `card-${index}`;
-            
-            // 點擊卡片本體發音
-            card.onclick = (e) => {
-                // 如果點到的是紅色按鈕，則不執行發音
-                if(e.target.className !== 'done-btn') {
-                    speak(item.tts_fix || item.word);
-                }
-            };
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('lesson-area').style.display = 'flex';
+            document.getElementById('lesson-title').innerText = lesson.title;
 
-            card.innerHTML = `
-                <button class="done-btn" onclick="removeCard('${card.id}')">✖</button>
-                <div class="emoji">${item.emoji}</div>
-                <div class="word">${item.word}</div>
-            `;
-            
-            gridContainer.appendChild(card);
-        });
+            const container = document.getElementById('vocab-grid');
+            container.innerHTML = '';
 
-        // 移除卡片功能
+            lesson.data.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'vocab-card';
+                card.id = `card-${id}-${index}`;
+                card.onclick = (e) => {
+                    if(e.target.className !== 'done-btn') speak(item.tts || item.word);
+                };
+                card.innerHTML = `
+                    <button class="done-btn" onclick="removeCard('${card.id}')">✖</button>
+                    <div class="emoji">${item.emoji}</div>
+                    <div class="word">${item.word}</div>
+                `;
+                container.appendChild(card);
+            });
+            speak(lesson.title);
+        }
+
         function removeCard(id) {
             const card = document.getElementById(id);
-            card.style.opacity = '0'; // 漸變消失效果
-            setTimeout(() => {
-                card.remove();
-            }, 400);
-            
-            // 播放一聲簡短的提示音或唸「學會了」
+            card.style.opacity = '0';
+            setTimeout(() => card.remove(), 400);
             speak("學會了");
+        }
+
+        function goBack() {
+            document.getElementById('lobby').style.display = 'block';
+            document.getElementById('lesson-area').style.display = 'none';
+            window.speechSynthesis.cancel();
         }
 
         function speak(text) {
