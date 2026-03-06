@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生字自學大廳 - 現代版</title>
+    <title>生字自學大廳 - 第三課更新版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
@@ -14,7 +14,7 @@
             --lobby-btn-bg: #333333;
             --lobby-btn-border: #555555;
             --lobby-title: #ffffff;
-            --done-btn-bg: #444444; /* 按鈕顏色 */
+            --done-btn-bg: #444444;
         }
 
         body {
@@ -26,7 +26,6 @@
             min-height: 100vh;
         }
 
-        /* QR Code 區域 */
         #qrcode-container {
             background: rgba(255, 255, 255, 0.9); padding: 10px; border-radius: 10px;
             margin-bottom: 20px; text-align: center;
@@ -34,16 +33,15 @@
         }
         #qrcode-container p { color: #000; font-weight: bold; margin: 5px; font-size: 1rem; }
 
-        h1 { color: var(--accent-yellow); font-size: 2.8rem; margin: 15px 0; text-align: center; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        h1 { color: var(--accent-yellow); font-size: 2.8rem; margin: 15px 0; text-align: center; }
         .hint { color: #aaaaaa; margin-bottom: 15px; font-size: 1.2rem; text-align: center; }
 
-        /* 大廳佈局：橫向佈滿螢幕的大按鈕 */
         #lobby { width: 100%; max-width: 1400px; display: flex; flex-direction: column; align-items: center; }
         .lobby-title { color: var(--lobby-title); font-size: 3rem; margin-bottom: 30px; }
         
         .lobby-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 橫向自動適應 */
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 25px;
             width: 100%;
             padding: 20px;
@@ -53,28 +51,22 @@
             background: var(--lobby-btn-bg);
             border: 2px solid var(--lobby-btn-border);
             color: #ffffff;
-            font-size: 2.8rem;
+            font-size: 2.5rem;
             padding: 50px 15px;
             border-radius: 15px;
             cursor: pointer;
             text-align: center;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .unit-btn:hover {
-            transform: translateY(-5px);
-            background-color: #444;
-            border-color: #888;
-        }
+        .unit-btn:hover { transform: translateY(-5px); background-color: #444; }
         .unit-btn small { font-size: 1.2rem; color: #ccc; margin-top: 10px; }
 
-        /* 課文內容佈局 */
         #lesson-area { display: none; width: 100%; max-width: 1400px; flex-direction: column; }
         
         .vocab-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* 課文內容也橫向並排 */
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 20px;
             width: 100%;
             padding: 20px;
@@ -92,36 +84,26 @@
             min-height: 250px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: opacity 0.4s ease, transform 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-        .vocab-card:hover { transform: scale(1.02); background-color: #252525; }
 
-        /* 文字消失按鈕 (我會了) */
         .done-btn {
             position: absolute; top: 15px; right: 15px;
             background: var(--done-btn-bg); color: var(--btn-text); border: 2px solid #666;
             padding: 10px 20px; font-size: 1.3rem; border-radius: 10px; cursor: pointer;
-            transition: background 0.2s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        .done-btn:hover { background-color: #666; }
 
         .back-btn {
             background: #444; color: white; border: 2px solid #666;
             padding: 15px 35px; font-size: 1.6rem; border-radius: 10px;
             margin-bottom: 25px; cursor: pointer; align-self: flex-start;
-            transition: background 0.2s;
             margin-left: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        .back-btn:hover { background-color: #666; }
 
         .emoji { font-size: 6rem; margin-bottom: 15px; pointer-events: none; }
-        .word { font-size: 4.5rem; font-weight: bold; color: var(--accent-yellow); pointer-events: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        .word { font-size: 4.5rem; font-weight: bold; color: var(--accent-yellow); pointer-events: none; }
 
         @media (max-width: 800px) {
-            .lobby-grid { grid-template-columns: 1fr; }
-            .vocab-grid { grid-template-columns: 1fr; }
+            .lobby-grid, .vocab-grid { grid-template-columns: 1fr; }
             .unit-btn { padding: 40px 10px; font-size: 2.2rem; }
             .word { font-size: 3.5rem; }
         }
@@ -139,7 +121,7 @@
         <div class="lobby-grid">
             <div class="unit-btn" onclick="loadLesson(1)">第一課<br><small>風中騎士</small></div>
             <div class="unit-btn" onclick="loadLesson(2)">第二課<br><small>達駭黑熊</small></div>
-            <div class="unit-btn" onclick="alert('內容開發中')">第三課<br><small>楊氏之子</small></div>
+            <div class="unit-btn" onclick="loadLesson(3)">第三課<br><small>楊氏之子</small></div>
             <div class="unit-btn" onclick="alert('內容開發中')">第四課<br><small>談夢想</small></div>
             <div class="unit-btn" onclick="alert('內容開發中')">第五課<br><small>蒂烈娜</small></div>
             <div class="unit-btn" onclick="alert('內容開發中')">第六課<br><small>不怕</small></div>
@@ -157,10 +139,9 @@
     </div>
 
     <script>
-        // 全課程資料庫
         const lessons = {
             1: {
-                title: "第一課重點語詞",
+                title: "第一課：風中騎士",
                 data: [
                     { word: "矛盾", emoji: "🛡️" }, { word: "娛樂", emoji: "🎡" },
                     { word: "帥", emoji: "😎" }, { word: "摔跤", emoji: "💥" },
@@ -174,20 +155,33 @@
                 ]
             },
             2: {
-                title: "第二課重點語詞",
+                title: "第二課：達駭黑熊",
                 data: [
                     { word: "獵人", emoji: "🏹" }, { word: "尚未", emoji: "⏳" },
                     { word: "包括", emoji: "📦" }, { word: "糞便", emoji: "💩" },
-                    { word: "獵寮", emoji: "⛺", tts: "獵聊" }, // 校正「寮」
+                    { word: "獵寮", emoji: "⛺", tts: "獵聊" },
                     { word: "狩獵", emoji: "🐺" }, { word: "逼迫", emoji: "😖" },
                     { word: "威脅", emoji: "😨" }, { word: "殺害", emoji: "❌" },
                     { word: "遵照", emoji: "🫡" }, 
-                    { word: "骸骨", emoji: "💀", tts: "孩骨" }, // 校正「骸」
+                    { word: "骸骨", emoji: "💀", tts: "孩骨" },
                     { word: "窩在", emoji: "🧶" }, { word: "杉木", emoji: "🌲" },
                     { word: "小心翼翼", emoji: "🤫" }, { word: "奄奄一息", emoji: "🥀" }
                 ]
+            },
+            3: {
+                title: "第三課：楊氏之子",
+                data: [
+                    { word: "楊梅", emoji: "🍒" },
+                    { word: "選", emoji: "🗳️" },
+                    { word: "軼聞", emoji: "📖", tts: "易聞" }, // 校正「軼」讀「易」
+                    { word: "膾炙人口", emoji: "🌟", tts: "快炙人口" }, // 校正「膾」讀「快」
+                    { word: "古典文學", emoji: "📜" },
+                    { word: "寓意", emoji: "💡" },
+                    { word: "邏輯", emoji: "🧠" },
+                    { word: "例子", emoji: "📝" },
+                    { word: "敏捷", emoji: "🏃" }
+                ]
             }
-            // 第三至九課資料可於此處添加
         };
 
         const lobby = document.getElementById('lobby');
@@ -196,31 +190,25 @@
         const vocabGrid = document.getElementById('vocab-grid');
         const qrcodeContainer = document.getElementById('qrcode-container');
 
-        // 載入特定課程
         function loadLesson(id) {
             const lesson = lessons[id];
             if(!lesson) return;
 
             lobby.style.display = 'none';
             lessonArea.style.display = 'flex';
-            qrcodeContainer.style.display = 'none'; // 進入課文時隱藏 QR Code
+            qrcodeContainer.style.display = 'none';
             lessonTitle.innerText = lesson.title;
-
-            vocabGrid.innerHTML = ''; // 清空舊內容
+            vocabGrid.innerHTML = '';
 
             lesson.data.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'vocab-card';
                 card.id = `card-${id}-${index}`;
-                
-                // 點擊卡片主體發音
                 card.onclick = (e) => {
-                    // 如果點到的是消失按鈕，不發音
                     if(e.target.className !== 'done-btn') {
                         speak(item.tts || item.word);
                     }
                 };
-
                 card.innerHTML = `
                     <button class="done-btn" onclick="removeCard('${card.id}')">我會了</button>
                     <div class="emoji">${item.emoji}</div>
@@ -231,38 +219,31 @@
             speak(lesson.title);
         }
 
-        // 移除卡片（我會了）
         function removeCard(id) {
             const card = document.getElementById(id);
-            card.style.opacity = '0'; // 漸變消失
-            setTimeout(() => {
-                card.remove();
-            }, 400);
+            card.style.opacity = '0';
+            setTimeout(() => card.remove(), 400);
             speak("學會了");
         }
 
-        // 回大廳
         function goBack() {
             lobby.style.display = 'flex';
             lessonArea.style.display = 'none';
-            qrcodeContainer.style.display = 'block'; // 回大廳時顯示 QR Code
-            window.speechSynthesis.cancel(); // 停止發音
+            qrcodeContainer.style.display = 'block';
+            window.speechSynthesis.cancel();
         }
 
-        // 語音功能
         function speak(text) {
-            window.speechSynthesis.cancel(); // 停止之前的發音
+            window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-TW';
-            utterance.rate = 0.65; // 放慢語速
+            utterance.rate = 0.65;
             window.speechSynthesis.speak(utterance);
         }
 
-        // 生成首頁 QR Code
         new QRCode(document.getElementById("qrcode"), {
-            text: window.location.href, // 自動抓取目前的網址
-            width: 100,
-            height: 100
+            text: window.location.href,
+            width: 100, height: 100
         });
     </script>
 </body>
