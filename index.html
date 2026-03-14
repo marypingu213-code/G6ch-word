@@ -2,131 +2,156 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生字自學大廳 - 視障友善版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>生字自學大廳 - 平板固定版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --bg-dark: #000000; /* 全黑背景增加對比 */
-            --card-dark: #1e1e1e;
-            --accent-yellow: #ffff00; /* 高亮黃 */
-            --lab-bg: #121212;
-            --nav-bg: #333333;
-            --radical-color: #ffffff;
-            --base-text: #00ff00; /* 亮綠色區分部件 */
+            --bg-dark: #000000;
+            --accent-yellow: #ffff00;
+            --base-text: #00ff00;
         }
 
-        body {
+        /* 鎖定滾動，強制一屏 */
+        html, body {
+            margin: 0; padding: 0;
+            height: 100vh; width: 100vw;
+            overflow: hidden; 
             background-color: var(--bg-dark);
             color: #ffffff;
             font-family: "Microsoft JhengHei", sans-serif;
-            margin: 0; padding: 0;
-            display: flex; flex-direction: column; align-items: center;
+            display: flex; flex-direction: column;
         }
 
-        /* 大廳樣式保持原本規模但字體加大 */
-        #lobby { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .lobby-title { color: var(--accent-yellow); font-size: 4rem; margin: 30px 0; }
-        .lobby-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; width: 95%; }
-        .unit-btn { background: #222; border: 4px solid #555; color: white; font-size: 3rem; padding: 60px 20px; border-radius: 20px; cursor: pointer; text-align: center; }
-        .lab-btn { border-color: #3498db; background: #001a33; }
+        /* 大廳佈局 */
+        #lobby { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; }
+        .lobby-title { color: var(--accent-yellow); font-size: 3rem; margin-bottom: 20px; }
+        .lobby-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 15px; width: 95%; max-height: 70vh;
+        }
+        .unit-btn { 
+            background: #222; border: 3px solid #555; color: white; 
+            font-size: 1.8rem; padding: 25px 10px; border-radius: 15px; 
+            text-align: center; cursor: pointer;
+        }
 
-        /* --- 視障友善實驗室專用樣式 --- */
-        #lab-area { display: none; width: 100%; min-height: 100vh; background-color: var(--lab-bg); flex-direction: column; }
-        .lab-nav { display: flex; justify-content: center; gap: 10px; padding: 15px; background: var(--nav-bg); flex-wrap: wrap; }
-        .nav-btn { padding: 15px 25px; font-size: 24px; border-radius: 12px; border: 2px solid #fff; background: #000; color: white; cursor: pointer; }
-        .nav-btn.active { background: var(--accent-yellow); color: #000; font-weight: bold; }
+        /* 實驗室固定佈局 */
+        #lab-area { 
+            display: none; height: 100vh; flex-direction: column; 
+            background: #121212; 
+        }
+        .lab-nav { display: flex; background: #333; padding: 10px; gap: 5px; }
+        .nav-btn { flex: 1; padding: 10px; font-size: 20px; border-radius: 8px; border: 1px solid #fff; background: #000; color: white; }
+        .nav-btn.active { background: var(--accent-yellow); color: #000; }
 
-        #combine-zone { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 40px 10px; }
-        
-        /* 放大結果顯示 */
-        #result-display { font-size: 200px; font-weight: 900; color: var(--accent-yellow); margin: 20px 0; line-height: 1; }
-        #result-emoji { font-size: 100px; height: 110px; }
+        /* 中央合體區：左右分割 */
+        #combine-main {
+            flex: 1; display: flex; align-items: center; justify-content: space-around; padding: 10px;
+        }
+        .left-process { display: flex; flex-direction: column; gap: 15px; align-items: center; }
+        .right-result { display: flex; flex-direction: column; align-items: center; }
 
-        /* 放大合體框 */
-        .slot-container { display: flex; align-items: center; gap: 30px; margin: 30px 0; }
         .slot {
-            width: 200px; height: 200px; border: 6px dashed #888; border-radius: 25px;
+            width: 140px; height: 140px; border: 5px dashed #888; border-radius: 20px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 100px; font-weight: bold; color: #888; background: #000;
+            font-size: 80px; font-weight: bold; background: #000;
         }
         .slot.filled { border-style: solid; border-color: #fff; color: #fff; }
         .slot.base-fixed { border-style: solid; border-color: var(--base-text); color: var(--base-text); }
 
-        #info-bar { font-size: 36px; font-weight: bold; color: #ffffff; background: #333; padding: 20px; border-radius: 15px; width: 80%; text-align: center; margin-top: 20px; }
+        #result-display { font-size: 180px; color: var(--accent-yellow); line-height: 1; }
+        #info-bar { font-size: 28px; background: #333; padding: 10px 30px; border-radius: 10px; margin-bottom: 10px; text-align: center;}
 
-        /* 底部按鈕區加大 */
-        .selection-area { background: #222; padding: 30px; border-top: 5px solid #444; width: 100%; box-sizing: border-box; }
-        #radical-btns { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; }
-        .part-btn { 
-            width: 120px; height: 120px; font-size: 60px; font-weight: bold; 
-            background: #000; color: #fff; border: 4px solid var(--accent-yellow); 
-            border-radius: 20px; cursor: pointer; 
+        /* 底部按鈕區 */
+        .selection-area { 
+            height: 160px; background: #222; padding: 10px; 
+            display: flex; flex-direction: column; align-items: center;
         }
-        .part-btn:active { background: var(--accent-yellow); color: #000; }
+        #radical-btns { display: flex; gap: 10px; margin-bottom: 10px; }
+        .part-btn { width: 90px; height: 90px; font-size: 50px; background: #000; color: #fff; border: 3px solid var(--accent-yellow); border-radius: 15px; }
 
-        .back-btn { background: #d32f2f; color: white; padding: 20px 40px; font-size: 2.5rem; border-radius: 15px; margin: 20px; border: none; cursor: pointer; font-weight: bold; }
-        
-        #qrcode-container { display: none; } /* 視障模式建議隱藏 QR Code 節省空間 */
+        /* QR Code 固定在右下角 */
+        #qrcode-container {
+            position: fixed; bottom: 10px; right: 10px;
+            background: white; padding: 5px; border-radius: 5px;
+            z-index: 100;
+        }
+        #qrcode-container p { margin: 0; font-size: 12px; color: black; text-align: center; }
+
+        .back-btn { background: #d32f2f; color: white; padding: 10px 20px; font-size: 1.5rem; border-radius: 10px; border: none; margin: 10px; }
     </style>
 </head>
 <body>
 
+    <div id="qrcode-container">
+        <div id="qrcode"></div>
+        <p>掃描學習</p>
+    </div>
+
     <div id="lobby">
         <h1 class="lobby-title">📚 課文自學大廳</h1>
         <div class="lobby-grid">
-            <div class="unit-btn lab-btn" onclick="openLab()">🧪 文字合體<br>實驗室</div>
-            <div class="unit-btn" onclick="loadLesson(1)">第一課<br>風中騎士</div>
-            <div class="unit-btn" onclick="loadLesson(2)">第二課<br>達駭黑熊</div>
-            <div class="unit-btn" onclick="loadLesson(3)">第三課<br>楊氏之子</div>
-            <div class="unit-btn" onclick="loadLesson(4)">第四課<br>談夢想</div>
-            <div class="unit-btn" onclick="loadLesson(5)">第五課<br>蒂烈娜</div>
+            <div class="unit-btn" style="border-color:#3498db" onclick="openLab()">🧪 文字合體</div>
+            <div class="unit-btn" onclick="loadLesson(1)">第一課</div>
+            <div class="unit-btn" onclick="loadLesson(2)">第二課</div>
+            <div class="unit-btn" onclick="loadLesson(3)">第三課</div>
+            <div class="unit-btn" onclick="loadLesson(4)">第四課</div>
+            <div class="unit-btn" onclick="loadLesson(5)">第五課</div>
+            <div class="unit-btn" onclick="alert('開發中')">第六課</div>
+            <div class="unit-btn" onclick="alert('開發中')">第七課</div>
         </div>
     </div>
 
     <div id="lab-area">
-        <button class="back-btn" onclick="goBack()">🏠 回大廳</button>
-        <nav class="lab-nav">
-            <button id="nav-mei" class="nav-btn" onclick="switchLevel('mei')">每 系列</button>
-            <button id="nav-qing" class="nav-btn" onclick="switchLevel('qing')">青 系列</button>
-            <button id="nav-guo" class="nav-btn" onclick="switchLevel('guo')">過 系列</button>
-            <button id="nav-ba" class="nav-btn" onclick="switchLevel('ba')">巴 系列</button>
-            <button id="nav-dui" class="nav-btn" onclick="switchLevel('dui')">兌 系列</button>
-            <button id="nav-zhui" class="nav-btn" onclick="switchLevel('zhui')">隹 系列</button>
-        </nav>
-        <div id="combine-zone">
-            <div id="result-emoji"></div>
-            <div id="result-display"></div>
-            <div class="slot-container">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <button class="back-btn" onclick="goBack()">🏠 回大廳</button>
+            <nav class="lab-nav" style="flex: 1; margin-left: 10px;">
+                <button id="nav-mei" class="nav-btn" onclick="switchLevel('mei')">每</button>
+                <button id="nav-qing" class="nav-btn" onclick="switchLevel('qing')">青</button>
+                <button id="nav-guo" class="nav-btn" onclick="switchLevel('guo')">過</button>
+                <button id="nav-ba" class="nav-btn" onclick="switchLevel('ba')">巴</button>
+                <button id="nav-dui" class="nav-btn" onclick="switchLevel('dui')">兌</button>
+                <button id="nav-zhui" class="nav-btn" onclick="switchLevel('zhui')">隹</button>
+            </nav>
+        </div>
+
+        <div id="combine-main">
+            <div class="left-process">
                 <div id="slot-radical" class="slot">部</div>
-                <div style="font-size: 60px; color: #fff;">+</div>
+                <div style="font-size: 40px;">+</div>
                 <div id="slot-base" class="slot base-fixed">?</div>
             </div>
-            <div id="info-bar">點選下方的部首</div>
+            
+            <div class="right-result">
+                <div id="result-display"></div>
+                <div id="info-bar">點選下方部首</div>
+            </div>
         </div>
+
         <div class="selection-area">
             <div id="radical-btns"></div>
-            <button onclick="clearRadical()" style="width:100%; padding:25px; margin-top:20px; border-radius:15px; font-size:30px; background:#555; color:white; border:none;">🔄 清除重選</button>
+            <button onclick="clearRadical()" style="padding:10px 40px; font-size:20px; background:#555; color:white; border:none; border-radius:10px;">🔄 重選</button>
         </div>
     </div>
 
-    <div id="lesson-area" style="display:none; background:#000; width:100%;">
+    <div id="lesson-area" style="display:none; height:100vh; flex-direction:column;">
         <button class="back-btn" onclick="goBack()">🏠 回大廳</button>
-        <h1 id="lesson-title" style="text-align:center; color:var(--accent-yellow); font-size:4rem;"></h1>
-        <div id="vocab-grid" style="display:grid; grid-template-columns:1fr; gap:20px; padding:20px;"></div>
+        <div id="vocab-grid" style="flex:1; display:grid; grid-template-columns: 1fr 1fr; gap:10px; padding:10px; overflow-y:auto;"></div>
     </div>
 
     <script>
-        // 資料物件與功能邏輯 (與先前版本一致，僅調整 UI 呈現)
-        const lessons = { 1: { title: "第一課", data: [{ word: "矛盾", emoji: "🛡️" }] } }; // 範例，請補齊
         const labLevels = {
-            mei: { title: "每", base: "每", results: { "氵": { char: "海", emo: "🌊", msg: "大海的海" }, "忄": { char: "悔", emo: "😢", msg: "後悔的悔" }, "艹": { char: "莓", emo: "🍓", msg: "草莓的莓" }, "木": { char: "梅", emo: "🌸", msg: "梅花的梅" } } },
-            qing: { title: "青", base: "青", results: { "氵": { char: "清", emo: "🥤", msg: "清水的清" }, "忄": { char: "情", emo: "❤️", msg: "心情的情" }, "日": { char: "晴", emo: "☀️", msg: "晴天的晴" }, "目": { char: "睛", emo: "👀", msg: "眼睛的睛" }, "言": { char: "請", emo: "🙏", msg: "請問的請" }, "犭": { char: "猜", emo: "❓", msg: "猜一猜的猜" } } },
-            guo: { title: "過", base: "咼", results: { "辶": { char: "過", emo: "🏃", msg: "路過的過" }, "穴": { char: "窩", emo: "🪺", msg: "鳥窩的窩" }, "釒": { char: "鍋", emo: "🍲", msg: "火鍋的鍋" } } },
-            ba: { title: "巴", base: "巴", results: { "父": { char: "爸", emo: "👨", msg: "爸爸的爸" }, "口": { char: "吧", emo: "💬", msg: "好吧的吧" }, "扌": { char: "把", emo: "🖐️", msg: "拿東西的把" }, "⺼": { char: "肥", emo: "🐷", msg: "肥肉的肥" } } },
-            dui: { title: "兌", base: "兌", results: { "言": { char: "說", emo: "🗣️", msg: "說話的說" }, "忄": { char: "悅", emo: "🥰", msg: "開心的悅" }, "⺼": { char: "脫", emo: "👕", msg: "脫衣服的脫" }, "釒": { char: "銳", emo: "🔪", msg: "尖銳的銳" } } },
-            zhui: { title: "隹", base: "隹", results: { "扌": { char: "推", emo: "👐", msg: "推門的推" }, "土": { char: "堆", emo: "⛰️", msg: "土堆、堆積的堆" }, "言": { char: "誰", emo: "🤔", msg: "你是誰的誰" }, "糹": { char: "維", emo: "🧬", msg: "維護、纖維的維" }, "辶": { char: "進", emo: "🚪", msg: "進門、前進的進" } } }
+            mei: { title: "每", base: "每", results: { "氵": { char: "海", msg: "大海的海" }, "忄": { char: "悔", msg: "後悔的悔" }, "艹": { char: "莓", msg: "草莓的莓" }, "木": { char: "梅", msg: "梅花的梅" } } },
+            qing: { title: "青", base: "青", results: { "氵": { char: "清", msg: "清水的清" }, "忄": { char: "情", msg: "心情的情" }, "日": { char: "晴", msg: "晴天的晴" }, "目": { char: "睛", msg: "眼睛的睛" }, "言": { char: "請", msg: "請問的請" }, "犭": { char: "猜", msg: "猜一猜的猜" } } },
+            guo: { title: "過", base: "咼", results: { "辶": { char: "過", msg: "路過的過" }, "穴": { char: "窩", msg: "鳥窩的窩" }, "釒": { char: "鍋", msg: "火鍋的鍋" } } },
+            ba: { title: "巴", base: "巴", results: { "父": { char: "爸", msg: "爸爸的爸" }, "口": { char: "吧", msg: "好吧的吧" }, "扌": { char: "把", msg: "拿東西的把" }, "⺼": { char: "肥", msg: "肥肉的肥" } } },
+            dui: { title: "兌", base: "兌", results: { "言": { char: "說", msg: "說話的說" }, "忄": { char: "悅", msg: "開心的悅" }, "⺼": { char: "脫", msg: "脫衣服的脫" }, "釒": { char: "銳", msg: "尖銳的銳" } } },
+            zhui: { title: "隹", base: "隹", results: { "扌": { char: "推", msg: "推門的推" }, "土": { char: "堆", msg: "土堆的堆" }, "言": { char: "誰", msg: "你是誰的誰" }, "糹": { char: "維", msg: "維護的維" }, "辶": { char: "進", msg: "前進的進" } } }
         };
+
+        let currentLabKey = 'mei';
 
         function goBack() { 
             document.getElementById('lobby').style.display = 'flex'; 
@@ -141,28 +166,31 @@
         function switchLevel(key) {
             currentLabKey = key;
             const data = labLevels[key];
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.id === 'nav-'+key));
             document.getElementById('slot-base').innerText = data.base;
             const btnArea = document.getElementById('radical-btns');
             btnArea.innerHTML = Object.keys(data.results).map(r => `<button class="part-btn" onclick="selectRadical('${r}')">${r}</button>`).join('');
             clearRadical();
-            speak("切換到" + data.title + "系列");
+            speak(data.title + "系列");
         }
         function selectRadical(r) {
             const res = labLevels[currentLabKey].results[r];
-            document.getElementById('slot-radical').innerText = r;
-            document.getElementById('slot-radical').classList.add('filled');
+            const slot = document.getElementById('slot-radical');
+            slot.innerText = r;
+            slot.classList.add('filled');
             document.getElementById('result-display').innerText = res.char;
-            document.getElementById('result-emoji').innerText = res.emo;
             document.getElementById('info-bar').innerText = res.msg;
-            speak(r + "加" + labLevels[currentLabKey].base + "，變成" + res.char + "。" + res.msg);
+            speak(r + "加" + labLevels[currentLabKey].base + "，變" + res.char);
         }
         function clearRadical() {
             document.getElementById('slot-radical').innerText = "部";
+            document.getElementById('slot-radical').classList.remove('filled');
             document.getElementById('result-display').innerText = "";
-            document.getElementById('result-emoji').innerText = "";
-            document.getElementById('info-bar').innerText = "點選下方的部首";
+            document.getElementById('info-bar').innerText = "選個部首";
         }
         function speak(t) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang='zh-TW'; u.rate=0.7; window.speechSynthesis.speak(u); }
+
+        new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 80, height: 80 });
     </script>
 </body>
 </html>
