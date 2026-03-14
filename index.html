@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生字自學大廳 - 第三課更新版</title>
+    <title>生字自學大廳 - 第五課更新版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
@@ -122,8 +122,8 @@
             <div class="unit-btn" onclick="loadLesson(1)">第一課<br><small>風中騎士</small></div>
             <div class="unit-btn" onclick="loadLesson(2)">第二課<br><small>達駭黑熊</small></div>
             <div class="unit-btn" onclick="loadLesson(3)">第三課<br><small>楊氏之子</small></div>
-            <div class="unit-btn" onclick="alert('內容開發中')">第四課<br><small>談夢想</small></div>
-            <div class="unit-btn" onclick="alert('內容開發中')">第五課<br><small>蒂烈娜</small></div>
+            <div class="unit-btn" onclick="loadLesson(4)">第四課<br><small>談夢想</small></div>
+            <div class="unit-btn" onclick="loadLesson(5)">第五課<br><small>蒂烈娜</small></div>
             <div class="unit-btn" onclick="alert('內容開發中')">第六課<br><small>不怕</small></div>
             <div class="unit-btn" onclick="alert('內容開發中')">第七課<br><small>打開心中的窗</small></div>
             <div class="unit-btn" onclick="alert('內容開發中')">第八課<br><small>努力愛春華</small></div>
@@ -171,15 +171,38 @@
             3: {
                 title: "第三課：楊氏之子",
                 data: [
-                    { word: "楊梅", emoji: "🍒" },
-                    { word: "選", emoji: "🗳️" },
-                    { word: "軼聞", emoji: "📖", tts: "易聞" }, // 校正「軼」讀「易」
-                    { word: "膾炙人口", emoji: "🌟", tts: "快炙人口" }, // 校正「膾」讀「快」
-                    { word: "古典文學", emoji: "📜" },
-                    { word: "寓意", emoji: "💡" },
-                    { word: "邏輯", emoji: "🧠" },
-                    { word: "例子", emoji: "📝" },
+                    { word: "楊梅", emoji: "🍒" }, { word: "選", emoji: "🗳️" },
+                    { word: "軼聞", emoji: "📖", tts: "易聞" },
+                    { word: "膾炙人口", emoji: "🌟", tts: "快炙人口" },
+                    { word: "古典文學", emoji: "📜" }, { word: "寓意", emoji: "💡" },
+                    { word: "邏輯", emoji: "🧠" }, { word: "例子", emoji: "📝" },
                     { word: "敏捷", emoji: "🏃" }
+                ]
+            },
+            4: {
+                title: "第四課：談夢想",
+                data: [
+                    { word: "蜿蜒", emoji: "〰️" }, { word: "荊棘", emoji: "🌵" },
+                    { word: "嚮往", emoji: "💭" }, { word: "逐夢", emoji: "🏃‍♂️" },
+                    { word: "步伐", emoji: "👣", tts: "步發" }, // 校正「伐」讀「發」
+                    { word: "領域", emoji: "🏗️" }, { word: "楷模", emoji: "🏆" },
+                    { word: "遺憾", emoji: "😞" }, { word: "岔口", emoji: "🛤️" },
+                    { word: "契機", emoji: "✨" }, { word: "名聞遐邇", emoji: "🌏" },
+                    { word: "奠定", emoji: "🧱" }, { word: "屹立不搖", emoji: "🗼" },
+                    { word: "氣餒", emoji: "📉" }, { word: "猶豫", emoji: "🤔" }
+                ]
+            },
+            5: {
+                title: "第五課：蒂烈娜",
+                data: [
+                    { word: "山巒", emoji: "⛰️" }, { word: "尾鰭", emoji: "🐟" },
+                    { word: "堅韌", emoji: "🦾" }, { word: "鞭子", emoji: "➰" },
+                    { word: "蒼黑", emoji: "⬛" }, { word: "鯝魚", emoji: "🐟" },
+                    { word: "恰巧", emoji: "📍" }, 
+                    { word: "不偏不倚", emoji: "🎯", tts: "不偏不乙" }, // 校正「倚」讀「乙」
+                    { word: "頸子", emoji: "🦒" }, { word: "強勁", emoji: "💨" },
+                    { word: "洶湧", emoji: "🌊" }, { word: "急湍", emoji: "🏞️" },
+                    { word: "兇猛", emoji: "🐯" }
                 ]
             }
         };
