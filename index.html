@@ -11,6 +11,7 @@
             --accent-yellow: #ffff00;
             --base-text: #00ff00;
             --done-btn: #444444;
+            --timer-red: #ff4444;
         }
 
         html, body {
@@ -23,8 +24,50 @@
             display: flex; flex-direction: column;
         }
 
+        /* --- 倒數計時器樣式 --- */
+        #timer-box {
+            background: #222;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            border-bottom: 2px solid #444;
+            flex-shrink: 0;
+        }
+        #timer-display {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            font-family: monospace;
+            min-width: 180px;
+            text-align: center;
+        }
+        #timer-display.danger { color: var(--timer-red); animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        
+        .timer-ctrl {
+            padding: 10px 20px;
+            font-size: 1.5rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .start-btn { background: #2e7d32; color: white; }
+        .reset-btn { background: #555; color: white; }
+        .timer-input {
+            width: 80px;
+            font-size: 2rem;
+            background: #000;
+            color: #fff;
+            border: 2px solid var(--accent-yellow);
+            text-align: center;
+            border-radius: 8px;
+        }
+
         /* --- 大廳佈局 --- */
-        #lobby { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; }
+        #lobby { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; overflow-y: auto; }
         .lobby-title { color: var(--accent-yellow); font-size: 3rem; margin-bottom: 20px; }
         .lobby-grid { 
             display: grid; 
@@ -39,7 +82,7 @@
         #lobby-qrcode { background: white; padding: 10px; border-radius: 10px; margin-top: 20px; text-align: center; }
         #lobby-qrcode p { color: black; margin: 5px 0 0; font-weight: bold; }
 
-        /* --- 實驗室佈局 (無 QR Code) --- */
+        /* --- 實驗室佈局 --- */
         #lab-area { display: none; height: 100vh; flex-direction: column; background: #121212; }
         .lab-nav { display: flex; background: #333; padding: 10px; gap: 5px; flex-shrink: 0; }
         .nav-btn { flex: 1; padding: 12px; font-size: 22px; border-radius: 8px; border: 1px solid #fff; background: #000; color: white; }
@@ -82,15 +125,23 @@
         
         .done-btn { 
             position: absolute; top: 15px; right: 15px; 
-            background: var(--done-btn); color: white; border: 1px solid #666; 
-            padding: 8px 15px; font-size: 1.2rem; border-radius: 10px; cursor: pointer;
+            background: #d32f2f; color: white; border: 2px solid #fff; 
+            padding: 10px 20px; font-size: 1.4rem; border-radius: 10px; cursor: pointer;
             z-index: 10;
         }
 
-        .back-btn { background: #d32f2f; color: white; padding: 12px 25px; font-size: 1.8rem; border-radius: 10px; border: none; margin: 10px; cursor: pointer; font-weight: bold; }
+        .back-btn { background: #555; color: white; padding: 12px 25px; font-size: 1.8rem; border-radius: 10px; border: none; margin: 10px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
+
+    <div id="timer-box">
+        <input type="number" id="timer-min" class="timer-input" value="10" min="1" max="99">
+        <span style="font-size: 1.5rem;">分</span>
+        <div id="timer-display">10:00</div>
+        <button id="timer-start-btn" class="timer-ctrl start-btn" onclick="toggleTimer()">開始</button>
+        <button class="timer-ctrl reset-btn" onclick="resetTimer()">重設</button>
+    </div>
 
     <div id="lobby">
         <h1 class="lobby-title">📚 課文自學大廳</h1>
@@ -140,6 +191,61 @@
     </div>
 
     <script>
+        // --- 倒數計時器邏輯 ---
+        let timerInterval;
+        let timeLeft = 600; 
+        let isRunning = false;
+
+        function updateTimerDisplay() {
+            const display = document.getElementById('timer-display');
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            display.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            // 最後 10 秒變紅
+            if (timeLeft <= 10 && timeLeft > 0) {
+                display.classList.add('danger');
+            } else {
+                display.classList.remove('danger');
+            }
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('timer-start-btn');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "開始";
+                btn.classList.replace('reset-btn', 'start-btn');
+            } else {
+                // 如果是重新開始，抓取輸入框的分鐘數
+                if (timeLeft <= 0 || timeLeft === parseInt(document.getElementById('timer-min').value) * 60) {
+                    timeLeft = parseInt(document.getElementById('timer-min').value) * 60;
+                }
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        speak("時間到囉！時間到囉！");
+                        isRunning = false;
+                        btn.innerText = "開始";
+                    }
+                }, 1000);
+                btn.innerText = "暫停";
+            }
+            isRunning = !isRunning;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            timeLeft = parseInt(document.getElementById('timer-min').value) * 60;
+            updateTimerDisplay();
+            const btn = document.getElementById('timer-start-btn');
+            btn.innerText = "開始";
+        }
+
+        // --- 課程與實驗室資料 ---
         const lessons = {
             1: { title: "第一課：風中騎士", data: [{ word: "矛盾", emoji: "🛡️" }, { word: "娛樂", emoji: "🎡" }, { word: "帥", emoji: "😎" }, { word: "摔跤", emoji: "💥" }, { word: "厚", emoji: "📚" }, { word: "提供", emoji: "🤲" }, { word: "諄諄教誨", emoji: "👨‍🏫", tts: "諄諄教繪" }, { word: "竅門", emoji: "🔑" }, { word: "呼嘯", emoji: "🌬️" }, { word: "叮嚀", emoji: "🗣️" }, { word: "廟", emoji: "⛩️" }, { word: "尿尿", emoji: "🚽" }, { word: "煞車", emoji: "🛑", tts: "沙車" }, { word: "霎時", emoji: "⚡" }, { word: "疤", emoji: "🩹" }, { word: "尿臊味", emoji: "👃", tts: "尿騷味" }] },
             2: { title: "第二課：達駭黑熊", data: [{ word: "獵人", emoji: "🏹" }, { word: "尚未", emoji: "⏳" }, { word: "包括", emoji: "📦" }, { word: "糞便", emoji: "💩" }, { word: "獵寮", emoji: "⛺", tts: "獵聊" }, { word: "狩獵", emoji: "🐺" }, { word: "逼迫", emoji: "😖" }, { word: "威脅", emoji: "😨" }, { word: "殺害", emoji: "❌" }, { word: "遵照", emoji: "🫡" }, { word: "骸骨", emoji: "💀", tts: "孩骨" }, { word: "窩在", emoji: "🧶" }, { word: "杉木", emoji: "🌲" }, { word: "小心翼翼", emoji: "🤫" }, { word: "奄奄一息", emoji: "🥀" }] },
@@ -188,11 +294,7 @@
                 card.onclick = (e) => { 
                     if(e.target.className !== 'done-btn') speak(item.tts || item.word); 
                 };
-                card.innerHTML = `
-                    <button class="done-btn" onclick="removeCard('${card.id}')">我會了</button>
-                    <div class="emoji">${item.emoji}</div>
-                    <div class="word">${item.word}</div>
-                `;
+                card.innerHTML = `<button class="done-btn" onclick="removeCard('${card.id}')">我會了</button><div class="emoji">${item.emoji}</div><div class="word">${item.word}</div>`;
                 container.appendChild(card);
             });
             speak(lesson.title);
@@ -250,7 +352,9 @@
             window.speechSynthesis.speak(u); 
         }
 
+        // 初始化
         new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 120, height: 120 });
+        updateTimerDisplay();
     </script>
 </body>
 </html>
