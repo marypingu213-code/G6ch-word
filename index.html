@@ -2,282 +2,129 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>生字自學大廳 - 視障友善完整版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生字自學大廳 - 完整課程版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --bg-dark: #000000;
+            --bg-dark: #121212;
+            --card-dark: #1e1e1e;
             --accent-yellow: #ffff00;
-            --base-text: #00ff00;
-            --done-btn: #444444;
-            --timer-red: #ff4444;
+            --btn-text: #ffffff;
+            --lobby-btn-bg: #333333;
+            --lobby-btn-border: #555555;
+            --done-btn-bg: #c0392b; /* 紅色高對比 */
         }
 
-        html, body {
-            margin: 0; padding: 0;
-            height: 100vh; width: 100vw;
-            overflow: hidden; 
+        body {
             background-color: var(--bg-dark);
             color: #ffffff;
             font-family: "Microsoft JhengHei", sans-serif;
-            display: flex; flex-direction: column;
+            margin: 0; padding: 10px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
         }
 
-        /* --- 倒數計時器樣式 --- */
-        #timer-box {
-            background: #222;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            border-bottom: 2px solid #444;
-            flex-shrink: 0;
+        #qrcode-container {
+            background: rgba(255, 255, 255, 0.9); padding: 10px; border-radius: 10px;
+            margin-bottom: 20px; text-align: center;
         }
-        #timer-display {
-            font-size: 3.5rem;
-            font-weight: bold;
-            color: var(--accent-yellow);
-            font-family: monospace;
-            min-width: 180px;
-            text-align: center;
-        }
-        #timer-display.danger { color: var(--timer-red); animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        #qrcode-container p { color: #000; font-weight: bold; margin: 5px; font-size: 1rem; }
+
+        h1 { color: var(--accent-yellow); font-size: 2.8rem; margin: 15px 0; text-align: center; }
+
+        #lobby { width: 100%; max-width: 1400px; display: flex; flex-direction: column; align-items: center; }
         
-        .timer-ctrl {
-            padding: 10px 20px;
-            font-size: 1.5rem;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
+        .lobby-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px; width: 100%; padding: 20px; box-sizing: border-box;
         }
-        .start-btn { background: #2e7d32; color: white; }
-        .reset-btn { background: #555; color: white; }
-        .timer-input {
-            width: 80px;
-            font-size: 2rem;
-            background: #000;
-            color: #fff;
-            border: 2px solid var(--accent-yellow);
-            text-align: center;
-            border-radius: 8px;
+        .unit-btn {
+            background: var(--lobby-btn-bg); border: 2px solid var(--lobby-btn-border);
+            color: #ffffff; font-size: 2.5rem; padding: 50px 15px; border-radius: 15px;
+            cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        /* --- 大廳佈局 --- */
-        #lobby { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; overflow-y: auto; }
-        .lobby-title { color: var(--accent-yellow); font-size: 3rem; margin-bottom: 20px; }
-        .lobby-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
-            gap: 15px; width: 95%;
-        }
-        .unit-btn { 
-            background: #222; border: 3px solid #555; color: white; 
-            font-size: 1.8rem; padding: 20px 10px; border-radius: 15px; 
-            text-align: center; cursor: pointer;
-        }
-        #lobby-qrcode { background: white; padding: 10px; border-radius: 10px; margin-top: 20px; text-align: center; }
-        #lobby-qrcode p { color: black; margin: 5px 0 0; font-weight: bold; }
-
-        /* --- 實驗室佈局 --- */
-        #lab-area { display: none; height: 100vh; flex-direction: column; background: #121212; }
-        .lab-nav { display: flex; background: #333; padding: 10px; gap: 5px; flex-shrink: 0; }
-        .nav-btn { flex: 1; padding: 12px; font-size: 22px; border-radius: 8px; border: 1px solid #fff; background: #000; color: white; }
-        .nav-btn.active { background: var(--accent-yellow); color: #000; font-weight: bold; }
-
-        #combine-main {
-            flex: 1; display: flex; align-items: center; justify-content: center; gap: 60px;
-            padding: 10px;
-        }
-        .left-process { display: flex; flex-direction: column; gap: 10px; align-items: center; }
-        .right-result { display: flex; flex-direction: column; align-items: center; min-width: 280px; }
-
-        .slot {
-            width: 150px; height: 150px; border: 5px dashed #888; border-radius: 25px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 90px; font-weight: bold; background: #000;
-        }
-        .slot.filled { border-style: solid; border-color: #fff; color: #fff; }
-        .slot.base-fixed { border-style: solid; border-color: var(--base-text); color: var(--base-text); }
-
-        #result-emoji { font-size: 110px; height: 120px; line-height: 1; margin-bottom: 5px; }
-        #result-display { font-size: 200px; color: var(--accent-yellow); line-height: 1; font-weight: 900; }
-        #info-bar { font-size: 32px; background: #333; padding: 10px 30px; border-radius: 12px; margin-top: 15px; }
-
-        .selection-area { height: 180px; background: #222; padding: 10px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
-        #radical-btns { display: flex; gap: 15px; margin-bottom: 15px; }
-        .part-btn { width: 100px; height: 100px; font-size: 55px; background: #000; color: #fff; border: 4px solid var(--accent-yellow); border-radius: 20px; cursor: pointer; }
-
-        /* --- 課程生字卡區域 --- */
-        #lesson-area { display: none; height: 100vh; flex-direction: column; background: var(--bg-dark); }
-        .vocab-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; padding: 20px; overflow-y: auto; }
-        .vocab-card { 
-            background: #1e1e1e; border: 3px solid #444; border-radius: 25px; 
-            padding: 40px 10px; text-align: center; position: relative;
-            transition: opacity 0.4s ease, transform 0.3s ease; cursor: pointer;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .vocab-card .word { font-size: 4.5rem; color: var(--accent-yellow); font-weight: bold; margin-top: 10px; }
-        .vocab-card .emoji { font-size: 5.5rem; }
+        #lesson-area { display: none; width: 100%; max-width: 1400px; flex-direction: column; }
         
-        .done-btn { 
-            position: absolute; top: 15px; right: 15px; 
-            background: #d32f2f; color: white; border: 2px solid #fff; 
-            padding: 10px 20px; font-size: 1.4rem; border-radius: 10px; cursor: pointer;
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px; width: 100%; padding: 20px; box-sizing: border-box;
+        }
+
+        .vocab-card {
+            background: var(--card-dark);
+            border: 2px solid #444; border-radius: 20px;
+            padding: 40px 10px; text-align: center; cursor: pointer;
+            position: relative; min-height: 250px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.4s ease;
+        }
+
+        .done-btn {
+            position: absolute; top: 15px; right: 15px;
+            background: var(--done-btn-bg); color: #ffffff; border: 2px solid #ffffff;
+            padding: 12px 24px; font-size: 1.5rem; border-radius: 12px; cursor: pointer;
             z-index: 10;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
         }
 
-        .back-btn { background: #555; color: white; padding: 12px 25px; font-size: 1.8rem; border-radius: 10px; border: none; margin: 10px; cursor: pointer; font-weight: bold; }
+        .back-btn {
+            background: #444; color: white; border: 2px solid #666;
+            padding: 15px 35px; font-size: 1.6rem; border-radius: 10px;
+            margin-bottom: 25px; cursor: pointer; margin-left: 20px;
+        }
+
+        .emoji { font-size: 6rem; margin-bottom: 15px; pointer-events: none; }
+        .word { font-size: 4.5rem; font-weight: bold; color: var(--accent-yellow); pointer-events: none; }
+
+        @media (max-width: 800px) {
+            .lobby-grid, .vocab-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="timer-box">
-        <input type="number" id="timer-min" class="timer-input" value="10" min="1" max="99">
-        <span style="font-size: 1.5rem;">分</span>
-        <div id="timer-display">10:00</div>
-        <button id="timer-start-btn" class="timer-ctrl start-btn" onclick="toggleTimer()">開始</button>
-        <button class="timer-ctrl reset-btn" onclick="resetTimer()">重設</button>
+    <div id="qrcode-container">
+        <p>📱 掃描開始學習</p>
+        <div id="qrcode"></div>
     </div>
 
     <div id="lobby">
         <h1 class="lobby-title">📚 課文自學大廳</h1>
-        <div class="lobby-grid" id="lobby-grid">
-            <div class="unit-btn" style="border-color:#3498db; background: #001a33;" onclick="openLab()">🧪 文字合體</div>
-        </div>
-        <div id="lobby-qrcode">
-            <div id="qrcode"></div>
-            <p>手機掃描同步學習</p>
-        </div>
-    </div>
-
-    <div id="lab-area">
-        <div style="display: flex; align-items: center;">
-            <button class="back-btn" onclick="goBack()">🏠 回大廳</button>
-            <nav class="lab-nav" style="flex: 1; margin-right: 10px;">
-                <button id="nav-mei" class="nav-btn" onclick="switchLevel('mei')">每</button>
-                <button id="nav-qing" class="nav-btn" onclick="switchLevel('qing')">青</button>
-                <button id="nav-guo" class="nav-btn" onclick="switchLevel('guo')">過</button>
-                <button id="nav-ba" class="nav-btn" onclick="switchLevel('ba')">巴</button>
-                <button id="nav-dui" class="nav-btn" onclick="switchLevel('dui')">兌</button>
-                <button id="nav-zhui" class="nav-btn" onclick="switchLevel('zhui')">隹</button>
-            </nav>
-        </div>
-        <div id="combine-main">
-            <div class="left-process">
-                <div id="slot-radical" class="slot">部</div>
-                <div style="font-size: 50px;">+</div>
-                <div id="slot-base" class="slot base-fixed">?</div>
-            </div>
-            <div class="right-result">
-                <div id="result-emoji"></div>
-                <div id="result-display"></div>
-                <div id="info-bar">點選部首</div>
-            </div>
-        </div>
-        <div class="selection-area">
-            <div id="radical-btns"></div>
-            <button onclick="clearRadical()" style="padding:12px 50px; font-size:24px; background:#555; color:white; border:none; border-radius:12px; cursor:pointer;">🔄 清除重選</button>
-        </div>
+        <div class="lobby-grid" id="lobby-btns"></div>
     </div>
 
     <div id="lesson-area">
         <button class="back-btn" onclick="goBack()">🏠 回大廳</button>
-        <h1 id="lesson-title" style="text-align:center; color:var(--accent-yellow); font-size:3rem; margin:10px 0;"></h1>
+        <h1 id="lesson-title">課文標題</h1>
         <div class="vocab-grid" id="vocab-grid"></div>
     </div>
 
     <script>
-        // --- 倒數計時器邏輯 ---
-        let timerInterval;
-        let timeLeft = 600; 
-        let isRunning = false;
-
-        function updateTimerDisplay() {
-            const display = document.getElementById('timer-display');
-            const mins = Math.floor(timeLeft / 60);
-            const secs = timeLeft % 60;
-            display.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            
-            // 最後 10 秒變紅
-            if (timeLeft <= 10 && timeLeft > 0) {
-                display.classList.add('danger');
-            } else {
-                display.classList.remove('danger');
-            }
-        }
-
-        function toggleTimer() {
-            const btn = document.getElementById('timer-start-btn');
-            if (isRunning) {
-                clearInterval(timerInterval);
-                btn.innerText = "開始";
-                btn.classList.replace('reset-btn', 'start-btn');
-            } else {
-                // 如果是重新開始，抓取輸入框的分鐘數
-                if (timeLeft <= 0 || timeLeft === parseInt(document.getElementById('timer-min').value) * 60) {
-                    timeLeft = parseInt(document.getElementById('timer-min').value) * 60;
-                }
-                timerInterval = setInterval(() => {
-                    timeLeft--;
-                    updateTimerDisplay();
-                    if (timeLeft <= 0) {
-                        clearInterval(timerInterval);
-                        speak("時間到囉！時間到囉！");
-                        isRunning = false;
-                        btn.innerText = "開始";
-                    }
-                }, 1000);
-                btn.innerText = "暫停";
-            }
-            isRunning = !isRunning;
-        }
-
-        function resetTimer() {
-            clearInterval(timerInterval);
-            isRunning = false;
-            timeLeft = parseInt(document.getElementById('timer-min').value) * 60;
-            updateTimerDisplay();
-            const btn = document.getElementById('timer-start-btn');
-            btn.innerText = "開始";
-        }
-
-        // --- 課程與實驗室資料 ---
         const lessons = {
             1: { title: "第一課：風中騎士", data: [{ word: "矛盾", emoji: "🛡️" }, { word: "娛樂", emoji: "🎡" }, { word: "帥", emoji: "😎" }, { word: "摔跤", emoji: "💥" }, { word: "厚", emoji: "📚" }, { word: "提供", emoji: "🤲" }, { word: "諄諄教誨", emoji: "👨‍🏫", tts: "諄諄教繪" }, { word: "竅門", emoji: "🔑" }, { word: "呼嘯", emoji: "🌬️" }, { word: "叮嚀", emoji: "🗣️" }, { word: "廟", emoji: "⛩️" }, { word: "尿尿", emoji: "🚽" }, { word: "煞車", emoji: "🛑", tts: "沙車" }, { word: "霎時", emoji: "⚡" }, { word: "疤", emoji: "🩹" }, { word: "尿臊味", emoji: "👃", tts: "尿騷味" }] },
             2: { title: "第二課：達駭黑熊", data: [{ word: "獵人", emoji: "🏹" }, { word: "尚未", emoji: "⏳" }, { word: "包括", emoji: "📦" }, { word: "糞便", emoji: "💩" }, { word: "獵寮", emoji: "⛺", tts: "獵聊" }, { word: "狩獵", emoji: "🐺" }, { word: "逼迫", emoji: "😖" }, { word: "威脅", emoji: "😨" }, { word: "殺害", emoji: "❌" }, { word: "遵照", emoji: "🫡" }, { word: "骸骨", emoji: "💀", tts: "孩骨" }, { word: "窩在", emoji: "🧶" }, { word: "杉木", emoji: "🌲" }, { word: "小心翼翼", emoji: "🤫" }, { word: "奄奄一息", emoji: "🥀" }] },
             3: { title: "第三課：楊氏之子", data: [{ word: "楊梅", emoji: "🍒" }, { word: "選", emoji: "🗳️" }, { word: "軼聞", emoji: "📖", tts: "易聞" }, { word: "膾炙人口", emoji: "🌟", tts: "快炙人口" }, { word: "古典文學", emoji: "📜" }, { word: "寓意", emoji: "💡" }, { word: "邏輯", emoji: "🧠" }, { word: "例子", emoji: "📝" }, { word: "敏捷", emoji: "🏃" }] },
             4: { title: "第四課：談夢想", data: [{ word: "蜿蜒", emoji: "〰️" }, { word: "荊棘", emoji: "🌵" }, { word: "嚮往", emoji: "💭" }, { word: "逐夢", emoji: "🏃‍♂️" }, { word: "步伐", emoji: "👣", tts: "步發" }, { word: "領域", emoji: "🏗️" }, { word: "楷模", emoji: "🏆" }, { word: "遺憾", emoji: "😞" }, { word: "岔口", emoji: "🛤️" }, { word: "契機", emoji: "✨" }, { word: "名聞遐邇", emoji: "🌏" }, { word: "奠定", emoji: "🧱" }, { word: "屹立不搖", emoji: "🗼" }, { word: "氣餒", emoji: "📉" }, { word: "猶豫", emoji: "🤔" }] },
             5: { title: "第五課：蒂烈娜", data: [{ word: "山巒", emoji: "⛰️" }, { word: "尾鰭", emoji: "🐟" }, { word: "堅韌", emoji: "🦾" }, { word: "鞭子", emoji: "➰" }, { word: "蒼黑", emoji: "⬛" }, { word: "鯝魚", emoji: "🐟" }, { word: "恰巧", emoji: "📍" }, { word: "不偏不倚", emoji: "🎯", tts: "不偏不乙" }, { word: "頸子", emoji: "🦒" }, { word: "強勁", emoji: "💨" }, { word: "洶湧", emoji: "🌊" }, { word: "急湍", emoji: "🏞️" }, { word: "兇猛", emoji: "🐯" }] },
-            6: { title: "第六課：不怕", data: [] }, 7: { title: "第七課：打開心中的窗", data: [] }, 8: { title: "第八課：努力愛春華", data: [] }, 9: { title: "第九課：小路", data: [] }
+            6: { title: "第六課：不怕", data: [{ word: "來賓", emoji: "🕴️" }, { word: "紐約", emoji: "🗽" }, { word: "百老匯", emoji: "🎭", tts: "百老繪" }, { word: "遙不可及", emoji: "🔭" }, { word: "遠赴", emoji: "✈️" }, { word: "暗自竊喜", emoji: "🤭" }, { word: "查好", emoji: "🔍" }, { word: "葡萄乾", emoji: "🍇" }, { word: "忐忑", emoji: "💓" }, { word: "按住", emoji: "✋" }, { word: "愚蠢", emoji: "🦉" }, { word: "犯錯", emoji: "⚠️" }, { word: "憤恨", emoji: "💢" }, { word: "生涯", emoji: "🛤️" }, { word: "淘汰", emoji: "🗑️" }] },
+            7: { title: "第七課：打開心中的窗", data: [{ word: "心扉", emoji: "🚪" }, { word: "狹小", emoji: "🤏" }, { word: "寂寞", emoji: "🌑" }, { word: "疏離", emoji: "↔️", tts: "書離" }, { word: "活潑", emoji: "🏃‍♀️" }, { word: "憐愛", emoji: "🥺" }, { word: "循規蹈矩", emoji: "📏" }, { word: "熟稔", emoji: "🤝" }, { word: "蝸牛", emoji: "🐌" }, { word: "戰戰兢兢", emoji: "😨" }, { word: "攀談", emoji: "💬" }, { word: "繭", emoji: "🐛" }, { word: "誠懇", emoji: "🙏" }, { word: "敦厚", emoji: "🧱" }, { word: "咀嚼", emoji: "👄", tts: "舉覺" }, { word: "殷勤", emoji: "🐝" }, { word: "彌足珍貴", emoji: "💎" }] },
+            8: { title: "第八課：努力愛春華", data: [{ word: "權力", emoji: "👑" }, { word: "糾察隊", emoji: "👮", tts: "究察隊" }, { word: "德行", emoji: "✨" }, { word: "忌諱", emoji: "🤫" }, { word: "鳳凰樹", emoji: "🌳" }, { word: "驪歌", emoji: "🎶" }, { word: "藏伏", emoji: "🕵️", tts: "臟服" }, { word: "邋遢", emoji: "👕" }, { word: "不拘小節", emoji: "🌊" }, { word: "出言不遜", emoji: "😡" }, { word: "紀念冊", emoji: "📒" }, { word: "摯友", emoji: "👫" }, { word: "討厭", emoji: "👎" }, { word: "波濤", emoji: "🌊" }, { word: "迴盪", emoji: "🔔" }, { word: "叮囑", emoji: "🗣️" }] },
+            9: { title: "第九課：小路", data: [{ word: "蔚藍", emoji: "🟦" }, { word: "忠誠", emoji: "🐕" }, { word: "夥伴", emoji: "🤝" }, { word: "門檻", emoji: "🚪" }, { word: "蒲公英", emoji: "🌼" }, { word: "空曠", emoji: "🏞️" }, { word: "綺夢", emoji: "🌈" }, { word: "誦讀", emoji: "📖" }] }
         };
 
-        const labLevels = {
-            mei: { title: "每", base: "每", results: { "氵": { char: "海", emo: "🌊", msg: "大海的海" }, "忄": { char: "悔", emo: "😢", msg: "後悔的悔" }, "艹": { char: "莓", emo: "🍓", msg: "草莓的莓" }, "木": { char: "梅", emo: "🌸", msg: "梅花的梅" } } },
-            qing: { title: "青", base: "青", results: { "氵": { char: "清", emo: "🥤", msg: "清水的清" }, "忄": { char: "情", emo: "❤️", msg: "心情的情" }, "日": { char: "晴", emo: "☀️", msg: "晴天的晴" }, "目": { char: "睛", emo: "👀", msg: "眼睛的睛" }, "言": { char: "請", emo: "🙏", msg: "請問的請" }, "犭": { char: "猜", emo: "❓", msg: "猜一猜的猜" } } },
-            guo: { title: "過", base: "咼", results: { "辶": { char: "過", emo: "🏃", msg: "路過的過" }, "穴": { char: "窩", emo: "🪺", msg: "鳥窩的窩" }, "釒": { char: "鍋", emo: "🍲", msg: "火鍋的鍋" } } },
-            ba: { title: "巴", base: "巴", results: { "父": { char: "爸", emo: "👨", msg: "爸爸的爸" }, "口": { char: "吧", emo: "💬", msg: "好吧的吧" }, "扌": { char: "把", emo: "🖐️", msg: "拿東西的把" }, "⺼": { char: "肥", emo: "🐷", msg: "肥肉的肥" } } },
-            dui: { title: "兌", base: "兌", results: { "言": { char: "說", emo: "🗣️", msg: "說話的說" }, "忄": { char: "悅", emo: "🥰", msg: "開心的悅" }, "⺼": { char: "脫", emo: "👕", msg: "脫衣服的脫" }, "釒": { char: "銳", emo: "🔪", msg: "尖銳的銳" } } },
-            zhui: { title: "隹", base: "隹", results: { "扌": { char: "推", emo: "👐", msg: "推門的推" }, "土": { char: "堆", emo: "⛰️", msg: "土堆的堆" }, "言": { char: "誰", emo: "🤔", msg: "你是誰的誰" }, "糹": { char: "維", emo: "🧬", msg: "維護的維" }, "辶": { char: "進", emo: "🚪", msg: "前進的進" } } }
-        };
+        const unitNames = ["風中騎士", "達駭黑熊", "楊氏之子", "談夢想", "蒂烈娜", "不怕", "打開心中的窗", "努力愛春華", "每一條小路"];
 
-        const grid = document.getElementById('lobby-grid');
-        for(let i=1; i<=9; i++){
+        const lobbyBtns = document.getElementById('lobby-btns');
+        for (let i = 1; i <= 9; i++) {
             const btn = document.createElement('div');
             btn.className = 'unit-btn';
-            btn.innerHTML = `${lessons[i].title.split('：')[0]}<br><small style="font-size:1rem;color:#aaa">${lessons[i].title.split('：')[1] || ''}</small>`;
-            btn.onclick = () => lessons[i].data.length ? loadLesson(i) : alert('內容開發中');
-            grid.appendChild(btn);
-        }
-
-        function goBack() { 
-            document.getElementById('lobby').style.display = 'flex'; 
-            document.getElementById('lab-area').style.display = 'none'; 
-            document.getElementById('lesson-area').style.display = 'none';
-            window.speechSynthesis.cancel();
+            btn.innerHTML = `第 ${i} 課<br><small>${unitNames[i-1]}</small>`;
+            btn.onclick = () => lessons[i] && lessons[i].data.length ? loadLesson(i) : alert('內容開發中');
+            lobbyBtns.appendChild(btn);
         }
 
         function loadLesson(id) {
@@ -287,12 +134,13 @@
             document.getElementById('lesson-title').innerText = lesson.title;
             const container = document.getElementById('vocab-grid');
             container.innerHTML = '';
-            lesson.data.forEach((item, idx) => {
+
+            lesson.data.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'vocab-card';
-                card.id = `card-${id}-${idx}`;
-                card.onclick = (e) => { 
-                    if(e.target.className !== 'done-btn') speak(item.tts || item.word); 
+                card.id = `card-${id}-${index}`;
+                card.onclick = (e) => {
+                    if (e.target.className !== 'done-btn') speak(item.tts || item.word);
                 };
                 card.innerHTML = `<button class="done-btn" onclick="removeCard('${card.id}')">我會了</button><div class="emoji">${item.emoji}</div><div class="word">${item.word}</div>`;
                 container.appendChild(card);
@@ -303,58 +151,25 @@
         function removeCard(id) {
             const card = document.getElementById(id);
             card.style.opacity = '0';
-            card.style.transform = 'scale(0.8)';
             setTimeout(() => card.remove(), 400);
             speak("學會了");
         }
 
-        function openLab() { 
-            document.getElementById('lobby').style.display = 'none'; 
-            document.getElementById('lab-area').style.display = 'flex'; 
-            switchLevel('mei'); 
+        function goBack() {
+            document.getElementById('lobby').style.display = 'flex';
+            document.getElementById('lesson-area').style.display = 'none';
+            window.speechSynthesis.cancel();
         }
 
-        function switchLevel(key) {
-            currentLabKey = key;
-            const data = labLevels[key];
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.id === 'nav-'+key));
-            document.getElementById('slot-base').innerText = data.base;
-            const btnArea = document.getElementById('radical-btns');
-            btnArea.innerHTML = Object.keys(data.results).map(r => `<button class="part-btn" onclick="selectRadical('${r}')">${r}</button>`).join('');
-            clearRadical();
-            speak(data.title + "系列");
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-TW';
+            utterance.rate = 0.65;
+            window.speechSynthesis.speak(utterance);
         }
 
-        function selectRadical(r) {
-            const res = labLevels[currentLabKey].results[r];
-            const slot = document.getElementById('slot-radical');
-            slot.innerText = r;
-            slot.classList.add('filled');
-            document.getElementById('result-display').innerText = res.char;
-            document.getElementById('result-emoji').innerText = res.emo;
-            document.getElementById('info-bar').innerText = res.msg;
-            speak(r + "加" + labLevels[currentLabKey].base + "，變" + res.char + "。" + res.msg);
-        }
-
-        function clearRadical() {
-            document.getElementById('slot-radical').innerText = "部";
-            document.getElementById('slot-radical').classList.remove('filled');
-            document.getElementById('result-display').innerText = "";
-            document.getElementById('result-emoji').innerText = "";
-            document.getElementById('info-bar').innerText = "點選部首";
-        }
-
-        function speak(t) { 
-            window.speechSynthesis.cancel(); 
-            const u = new SpeechSynthesisUtterance(t); 
-            u.lang='zh-TW'; 
-            u.rate=0.7; 
-            window.speechSynthesis.speak(u); 
-        }
-
-        // 初始化
-        new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 120, height: 120 });
-        updateTimerDisplay();
+        new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 100, height: 100 });
     </script>
 </body>
 </html>
